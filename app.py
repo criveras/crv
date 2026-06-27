@@ -83,16 +83,7 @@ def _parse_bool(raw: str | None) -> bool:
     return str(raw or "").lower() in ("1", "true", "yes", "on", "si")
 
 
-def _chart_payload(
-    df: pd.DataFrame,
-    unit: str,
-    cfg: dict | None = None,
-    *,
-    qin_manual: float | None = None,
-    qin_mode: str = "actual",
-    lh_sigma: int = 0,
-    sigma_alarm: bool = False,
-) -> dict[str, Any]:
+def _chart_payload(df: pd.DataFrame, unit: str, cfg: dict | None = None, *, qin_manual: float | None = None, qin_mode: str = "actual", lh_sigma: int = 0, sigma_alarm: bool = False) -> dict[str, Any]:
     cfg = cfg or {}
     point = cfg.get("point", "")
     profile = get_profile(point, unit, cfg)
@@ -108,7 +99,6 @@ def _chart_payload(
         df = attach_homolog(df, cfg.get("ma", 15))
     patterns = detect_patterns(df, cfg) if cfg.get("sixsigma_enabled", True) else {"events": [], "summary": {}}
     daily_stats = daily_reference_stats(df)
-
     work = _downsample(df)
     pct_cols = ("p05", "p20", "p50", "p80", "p95", "l", "h", "ll", "hh", "cl", "s1_lo", "s1_hi", "s2_lo", "s2_hi", "s3_lo", "s3_hi", "homolog_1d", "homolog_7d")
     series = []
@@ -128,11 +118,7 @@ def _chart_payload(
         "series": series,
         "ruptures": ruptures,
         "pre_ruptures": pre,
-        "sixsigma": {
-            "summary": patterns.get("summary", {}),
-            "markers": pattern_markers(patterns),
-            "recent": patterns.get("events", [])[-12:],
-        },
+        "sixsigma": {"summary": patterns.get("summary", {}), "markers": pattern_markers(patterns), "recent": patterns.get("events", [])[-12:]},
         "variable_profile": profile,
         "daily_stats": daily_stats,
         "lh_sigma": lh_sigma,
@@ -149,7 +135,11 @@ def _chart_payload(
 def index():
     cfg = _base_cfg()
     initial_point = request.args.get("point") or cfg.get("point", "cp.pcp.huiliches")
-    return render_template("index.html", initial_point=initial_point, default_unit=cfg.get("unit", "l/s"))
+    html = render_template("index.html", initial_point=initial_point, default_unit=cfg.get("unit", "l/s"))
+    sigma_script = '<script src="/static/js/sigma-alarm-toggle.js?v=1"></script>'
+    if "sigma-alarm-toggle.js" not in html:
+        html = html.replace("</body>", sigma_script + "</body>")
+    return html
 
 
 @app.route("/api/config")
@@ -215,19 +205,7 @@ def api_report():
 def _empty_chart_payload(point: str, cfg: dict, message: str) -> dict[str, Any]:
     profile = get_profile(point, "", cfg)
     unit = profile.get("unit") or cfg.get("unit", "")
-    return {
-        "point": point,
-        "empty": True,
-        "message": message,
-        "unit": unit,
-        "count": 0,
-        "series": [],
-        "ruptures": [],
-        "pre_ruptures": [],
-        "sixsigma": {"summary": {}, "markers": {}, "recent": []},
-        "variable_profile": profile,
-        "daily_stats": [],
-    }
+    return {"point": point, "empty": True, "message": message, "unit": unit, "count": 0, "series": [], "ruptures": [], "pre_ruptures": [], "sixsigma": {"summary": {}, "markers": {}, "recent": []}, "variable_profile": profile, "daily_stats": []}
 
 
 @app.route("/api/chart")
@@ -245,18 +223,7 @@ def api_chart():
     try:
         cfg = _cfg_for_point(point, {"fini": fini, "ma": ma, "point": point})
         df, _, _ = prepare_dataset(cfg)
-        return jsonify({
-            "point": point,
-            **_chart_payload(
-                df,
-                cfg.get("unit", "l/s"),
-                cfg,
-                qin_manual=qin_manual,
-                qin_mode=qin_mode,
-                lh_sigma=lh_sigma,
-                sigma_alarm=sigma_alarm,
-            ),
-        })
+        return jsonify({"point": point, **_chart_payload(df, cfg.get("unit", "l/s"), cfg, qin_manual=qin_manual, qin_mode=qin_mode, lh_sigma=lh_sigma, sigma_alarm=sigma_alarm)})
     except ValueError as exc:
         msg = str(exc)
         if msg.startswith("Sin datos"):
@@ -270,7 +237,6 @@ def api_chart():
 
 @app.route("/api/volume/tanks")
 def api_volume_tanks():
-    """Resumen de proyeccion de volumen para todos los estanques configurados."""
     qin_mode = request.args.get("qin_mode") or "actual"
     qin_raw = request.args.get("qin")
     qin_manual = float(qin_raw) if qin_raw not in (None, "") else None
@@ -282,13 +248,7 @@ def api_volume_tanks():
         try:
             cfg = _cfg_for_point(vol_point, {"fini": "*-6h", "ma": 15, "point": vol_point})
             df, _, _ = prepare_dataset(cfg)
-            overlay = build_volume_overlay(
-                vol_point,
-                df,
-                cfg,
-                qin_manual=qin_manual if vol_point == current_point else None,
-                qin_mode=qin_mode,
-            )
+            overlay = build_volume_overlay(vol_point, df, cfg, qin_manual=qin_manual if vol_point == current_point else None, qin_mode=qin_mode)
             if not overlay:
                 tanks.append({"point": vol_point, "recinto": _recinto, "error": "sin perfil demo_ia"})
                 continue
