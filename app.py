@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Portal web GPU Tag — análisis nocturno y pre-alarma de rotura."""
+"""Portal web GPU Tag - analisis nocturno y pre-alarma de rotura."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from flask import Flask, jsonify, render_template, request
 from anomaly_engine import analyze_series, series_point_payload
 from analyze import DEFAULT_CONFIG, load_config, prepare_dataset, report_path_for, run
 from limits import compute_limits, daily_diurnal_stats
-from sixsigma import apply_sigma_lh_limits, build_sigma_bands, detect_patterns, pattern_markers
+from sixsigma import apply_sigma_alarm_limits, apply_sigma_lh_limits, build_sigma_bands, detect_patterns, pattern_markers
 from variable_profiles import attach_homolog, daily_reference_stats, get_profile
 from volume_projection import build_volume_overlay, is_volume_point, summarize_volume_overlay
 
@@ -79,6 +79,10 @@ def _parse_lh_sigma(raw: str | None) -> int:
     return n if n in (1, 2, 3) else 0
 
 
+def _parse_bool(raw: str | None) -> bool:
+    return str(raw or "").lower() in ("1", "true", "yes", "on", "si")
+
+
 def _chart_payload(
     df: pd.DataFrame,
     unit: str,
@@ -87,6 +91,7 @@ def _chart_payload(
     qin_manual: float | None = None,
     qin_mode: str = "actual",
     lh_sigma: int = 0,
+    sigma_alarm: bool = False,
 ) -> dict[str, Any]:
     cfg = cfg or {}
     point = cfg.get("point", "")
@@ -96,6 +101,8 @@ def _chart_payload(
         df = build_sigma_bands(df, use_dow=cfg.get("ll_hh_use_dow", True))
     if lh_sigma in (1, 2, 3):
         df = apply_sigma_lh_limits(df, lh_sigma)
+    if sigma_alarm:
+        df = apply_sigma_alarm_limits(df, 3)
     df = analyze_series(df, cfg, profile)
     if not df.empty and "homolog_1d" not in df.columns:
         df = attach_homolog(df, cfg.get("ma", 15))
@@ -129,6 +136,7 @@ def _chart_payload(
         "variable_profile": profile,
         "daily_stats": daily_stats,
         "lh_sigma": lh_sigma,
+        "sigma_alarm": sigma_alarm,
     }
     if is_volume_point(point):
         overlay = build_volume_overlay(point, df, cfg, qin_manual=qin_manual, qin_mode=qin_mode)
@@ -165,7 +173,7 @@ def api_points():
             if not tag:
                 continue
             nombre = p.get("nombre") or p.get("descripcion") or ""
-            label = " — ".join(x for x in [tag, nombre] if x)
+            label = " - ".join(x for x in [tag, nombre] if x)
             if only_caudal and "caudal" not in label.lower() and tag not in presets:
                 continue
             if q and q not in label.lower():
@@ -233,6 +241,7 @@ def api_chart():
     qin_raw = request.args.get("qin")
     qin_manual = float(qin_raw) if qin_raw not in (None, "") else None
     lh_sigma = _parse_lh_sigma(request.args.get("lh_sigma"))
+    sigma_alarm = _parse_bool(request.args.get("sigma_alarm"))
     try:
         cfg = _cfg_for_point(point, {"fini": fini, "ma": ma, "point": point})
         df, _, _ = prepare_dataset(cfg)
@@ -245,13 +254,14 @@ def api_chart():
                 qin_manual=qin_manual,
                 qin_mode=qin_mode,
                 lh_sigma=lh_sigma,
+                sigma_alarm=sigma_alarm,
             ),
         })
     except ValueError as exc:
         msg = str(exc)
         if msg.startswith("Sin datos"):
             cfg = _cfg_for_point(point, {"fini": fini, "ma": ma, "point": point})
-            hint = f"{msg} — prueba ampliar el rango (30/90 días)."
+            hint = f"{msg} - prueba ampliar el rango (30/90 dias)."
             return jsonify(_empty_chart_payload(point, cfg, hint))
         return jsonify({"error": msg}), 400
     except requests.RequestException as exc:
@@ -260,7 +270,7 @@ def api_chart():
 
 @app.route("/api/volume/tanks")
 def api_volume_tanks():
-    """Resumen de proyección de volumen para todos los estanques configurados."""
+    """Resumen de proyeccion de volumen para todos los estanques configurados."""
     qin_mode = request.args.get("qin_mode") or "actual"
     qin_raw = request.args.get("qin")
     qin_manual = float(qin_raw) if qin_raw not in (None, "") else None
