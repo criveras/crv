@@ -65,6 +65,33 @@ def apply_sigma_lh_limits(df: pd.DataFrame, sigma_n: int) -> pd.DataFrame:
     return out
 
 
+def apply_sigma_alarm_limits(df: pd.DataFrame, sigma_n: int = 3) -> pd.DataFrame:
+    """Sustituye LL/HH (alarma segura) por ±Nσ respecto a la línea central.
+
+    Esto permite usar un patron diario historico por hora y tipo de dia
+    (lunes-viernes, sabado, domingo) como limite operacional seguro.
+    """
+    if sigma_n not in (1, 2, 3):
+        return df
+    lo_col = f"s{sigma_n}_lo"
+    hi_col = f"s{sigma_n}_hi"
+    if lo_col not in df.columns or hi_col not in df.columns:
+        return df
+    out = df.copy()
+    mask = out[lo_col].notna() & out[hi_col].notna()
+    if "ll" in out.columns:
+        out["ll"] = out["ll"].astype(float)
+    else:
+        out["ll"] = np.nan
+    if "hh" in out.columns:
+        out["hh"] = out["hh"].astype(float)
+    else:
+        out["hh"] = np.nan
+    out.loc[mask, "ll"] = out.loc[mask, lo_col].astype(float)
+    out.loc[mask, "hh"] = out.loc[mask, hi_col].astype(float)
+    return out
+
+
 def build_sigma_bands(df: pd.DataFrame, use_dow: bool = True, min_samples: int = 3) -> pd.DataFrame:
     """Línea central y bandas ±1σ/±2σ/±3σ por hora y día (wd/sat/sun)."""
     if df.empty:
