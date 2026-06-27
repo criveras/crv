@@ -1,0 +1,399 @@
+{
+  "generated_at": "2026-06-26T01:14:12.054794+00:00",
+  "point": "cp.plg.reguladora_presion_booster.caudal",
+  "unit": "l/s",
+  "fini": "*-90d",
+  "ma": 15,
+  "data_points": 8481,
+  "rupture_events": 2,
+  "pre_rupture_samples": 5,
+  "nocturnal": {
+    "summary": {
+      "n_nights": 91,
+      "min_nocturno_global": 0.021,
+      "max_nocturno_global": 0.04,
+      "mean_night_min": 0.025,
+      "mean_night_max": 0.035,
+      "p10_night_min": 0.023,
+      "p90_night_max": 0.038
+    },
+    "profile_hourly": [
+      {
+        "hour_local": 0,
+        "min": 0.022490000000000003,
+        "max": 0.0375,
+        "mean": 0.03015098203012103,
+        "count": 354
+      },
+      {
+        "hour_local": 1,
+        "min": 0.021527027027027034,
+        "max": 0.03841111111111111,
+        "mean": 0.03021335452206288,
+        "count": 356
+      },
+      {
+        "hour_local": 2,
+        "min": 0.023087500000000004,
+        "max": 0.038580769230769224,
+        "mean": 0.03020802168328114,
+        "count": 356
+      },
+      {
+        "hour_local": 3,
+        "min": 0.0231974358974359,
+        "max": 0.03694523809523811,
+        "mean": 0.0305346557398791,
+        "count": 356
+      },
+      {
+        "hour_local": 4,
+        "min": 0.023184210526315797,
+        "max": 0.03832058823529413,
+        "mean": 0.03062592734864262,
+        "count": 356
+      },
+      {
+        "hour_local": 5,
+        "min": 0.02194390243902439,
+        "max": 0.04019250000000001,
+        "mean": 0.031043954784920027,
+        "count": 356
+      },
+      {
+        "hour_local": 22,
+        "min": 0.020524444444444446,
+        "max": 0.038047058823529406,
+        "mean": 0.029565962262311708,
+        "count": 354
+      },
+      {
+        "hour_local": 23,
+        "min": 0.021953658536585367,
+        "max": 0.03638809523809524,
+        "mean": 0.03001910686073941,
+        "count": 357
+      }
+    ],
+    "anomalies": [
+      {
+        "date_local": "2026-03-29",
+        "night_min": 0.020524444444444446,
+        "night_max": 0.032468292682926836,
+        "night_mean": 0.027668066121986308,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-03-30",
+        "night_min": 0.021953658536585367,
+        "night_max": 0.03161627906976744,
+        "night_mean": 0.027449503967942667,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-03-31",
+        "night_min": 0.0221475,
+        "night_max": 0.034018604651162805,
+        "night_mean": 0.02784913906936985,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-01",
+        "night_min": 0.02194390243902439,
+        "night_max": 0.032252380952380956,
+        "night_mean": 0.02780925540779588,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-04",
+        "night_min": 0.021314285714285716,
+        "night_max": 0.031947368421052634,
+        "night_mean": 0.027895679191902445,
+        "night_count": 33,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-05",
+        "night_min": 0.022886046511627907,
+        "night_max": 0.0375,
+        "night_mean": 0.028774821970712672,
+        "night_count": 30,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-11",
+        "night_min": 0.02278372093023256,
+        "night_max": 0.03750238095238096,
+        "night_mean": 0.029353047583755437,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-18",
+        "night_min": 0.022359090909090912,
+        "night_max": 0.03395121951219512,
+        "night_mean": 0.02874789934594608,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-21",
+        "night_min": 0.022490000000000003,
+        "night_max": 0.0346875,
+        "night_mean": 0.029464516031989286,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-24",
+        "night_min": 0.02571891891891892,
+        "night_max": 0.038185365853658546,
+        "night_mean": 0.029418522949831123,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-05-22",
+        "night_min": 0.026485,
+        "night_max": 0.03942941176470588,
+        "night_mean": 0.032604810817006974,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-05-23",
+        "night_min": 0.029287499999999998,
+        "night_max": 0.03991818181818183,
+        "night_mean": 0.033340013421045145,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-05-24",
+        "night_min": 0.027137209302325584,
+        "night_max": 0.03832058823529413,
+        "night_mean": 0.033027627558769486,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-05-29",
+        "night_min": 0.026315384615384615,
+        "night_max": 0.03819117647058825,
+        "night_mean": 0.030895255866350436,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-04",
+        "night_min": 0.02469024390243903,
+        "night_max": 0.04019250000000001,
+        "night_mean": 0.03069624676740067,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-07",
+        "night_min": 0.026879411764705888,
+        "night_max": 0.039847368421052645,
+        "night_mean": 0.03178066523826725,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-19",
+        "night_min": 0.026562962962962965,
+        "night_max": 0.038231249999999994,
+        "night_mean": 0.032060726375028194,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-22",
+        "night_min": 0.027278787878787875,
+        "night_max": 0.038580769230769224,
+        "night_mean": 0.032500659056268436,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      }
+    ],
+    "recent_nights": [
+      {
+        "date_local": "2026-06-19",
+        "night_min": 0.026562962962962965,
+        "night_max": 0.038231249999999994,
+        "night_mean": 0.032060726375028194,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-20",
+        "night_min": 0.024216666666666668,
+        "night_max": 0.03444782608695653,
+        "night_mean": 0.0303049885809736,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-21",
+        "night_min": 0.025465217391304352,
+        "night_max": 0.0334962962962963,
+        "night_mean": 0.03048539360360339,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-22",
+        "night_min": 0.027278787878787875,
+        "night_max": 0.038580769230769224,
+        "night_mean": 0.032500659056268436,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-23",
+        "night_min": 0.027610810810810807,
+        "night_max": 0.03817142857142858,
+        "night_mean": 0.03149067815072762,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-24",
+        "night_min": 0.025581249999999996,
+        "night_max": 0.03584117647058825,
+        "night_mean": 0.03124104035023629,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-25",
+        "night_min": 0.027317021276595754,
+        "night_max": 0.035571794871794876,
+        "night_mean": 0.03135527792746627,
+        "night_count": 24
+      }
+    ]
+  },
+  "limits": {
+    "method": "p10/p90_daily_extremes",
+    "global": {
+      "ll": 0.025,
+      "hh": 0.035
+    },
+    "nocturno": {
+      "ll": 0.023,
+      "hh": 0.038,
+      "min_observado": 0.021,
+      "max_observado": 0.04,
+      "ventana": "22h–6h"
+    },
+    "diurno": {
+      "ll": 0.021,
+      "hh": 0.084,
+      "min_observado": 0.018,
+      "max_observado": 7.481,
+      "ventana": "6h–22h"
+    }
+  },
+  "current_alarm": {
+    "in_alarm": false,
+    "blink": false,
+    "tipo": "",
+    "nivel": 0,
+    "franja": "diurno",
+    "ll_activo": 0.021,
+    "hh_activo": 0.084,
+    "valor": 0.029,
+    "ts": "2026-06-25 21:14:09-04:00",
+    "mensaje": "Dentro de límites"
+  },
+  "model_metrics": {
+    "features": [
+      "hour",
+      "dow",
+      "is_night",
+      "value",
+      "lag_1",
+      "lag_2",
+      "lag_4",
+      "lag_8",
+      "delta_1",
+      "delta_2",
+      "delta_4",
+      "delta_up_4",
+      "delta_down_4",
+      "delta_max_4",
+      "dev_p50",
+      "dev_p80",
+      "dev_p95",
+      "ratio_p80",
+      "roll_mean_8",
+      "roll_std_8",
+      "roll_min_8",
+      "roll_max_8",
+      "vs_night_min",
+      "vs_night_max",
+      "night_range",
+      "night_min",
+      "night_max",
+      "night_mean"
+    ],
+    "train_size": 6784,
+    "test_size": 1697,
+    "positives_train": 5,
+    "positives_test": 0,
+    "top_features": [
+      {
+        "feature": "roll_min_8",
+        "importance": 0.3596
+      },
+      {
+        "feature": "night_min",
+        "importance": 0.1538
+      },
+      {
+        "feature": "night_mean",
+        "importance": 0.0773
+      },
+      {
+        "feature": "night_range",
+        "importance": 0.0736
+      },
+      {
+        "feature": "night_max",
+        "importance": 0.0638
+      },
+      {
+        "feature": "roll_mean_8",
+        "importance": 0.0547
+      },
+      {
+        "feature": "lag_4",
+        "importance": 0.0455
+      },
+      {
+        "feature": "lag_2",
+        "importance": 0.0354
+      },
+      {
+        "feature": "delta_4",
+        "importance": 0.0337
+      },
+      {
+        "feature": "ratio_p80",
+        "importance": 0.0251
+      }
+    ]
+  },
+  "classification_report": "              precision    recall  f1-score   support\n\n           0       1.00      1.00      1.00      1697\n\n    accuracy                           1.00      1697\n   macro avg       1.00      1.00      1.00      1697\nweighted avg       1.00      1.00      1.00      1697\n",
+  "current_score": {
+    "prob": 0.0001,
+    "nivel": 0,
+    "estado": "ok",
+    "ts": "2026-06-25 21:14:09-04:00",
+    "caudal": 0.029,
+    "delta_4": 0.001,
+    "dev_p80": 0.0,
+    "vs_night_min": 0.002
+  },
+  "model_path": "/home/criveras/app/gpu_tag/output/cp_plg_reguladora_presion_booster_caudal.json"
+}

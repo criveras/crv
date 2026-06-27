@@ -1,0 +1,488 @@
+{
+  "generated_at": "2026-06-26T22:05:58.199266+00:00",
+  "point": "ch.tknuevo.entrada1_caudal",
+  "unit": "l/s",
+  "fini": "*-14d",
+  "ma": 5,
+  "variable_profile": {
+    "label": "Caudal entrada",
+    "unit_default": "l/s",
+    "riesgos": [
+      "rebalse_estanque",
+      "aporte_bajo"
+    ],
+    "hh_significa": "Aporte alto — riesgo de llenado excesivo del estanque",
+    "ll_significa": "Aporte bajo — estanque puede vaciarse",
+    "homolog_alerta": "Cambio vs ayer/semana en el aporte de agua",
+    "rotura_relevante": false,
+    "type": "caudal_entrada",
+    "point": "ch.tknuevo.entrada1_caudal",
+    "unit": "l/s"
+  },
+  "data_points": 2982,
+  "rupture_events": 0,
+  "pre_rupture_samples": 0,
+  "nocturnal": {
+    "summary": {
+      "n_nights": 15,
+      "min_nocturno_global": 0.0,
+      "max_nocturno_global": 42.5,
+      "mean_night_min": 37.335,
+      "mean_night_max": 41.472,
+      "p10_night_min": 39.133,
+      "p90_night_max": 42.0
+    },
+    "profile_hourly": [
+      {
+        "hour_local": 0,
+        "min": 39.4,
+        "max": 42.0,
+        "mean": 40.70789459761423,
+        "count": 107
+      },
+      {
+        "hour_local": 1,
+        "min": 39.333333333333336,
+        "max": 42.0,
+        "mean": 40.907069646040235,
+        "count": 136
+      },
+      {
+        "hour_local": 2,
+        "min": 39.4,
+        "max": 42.0,
+        "mean": 40.84499044726317,
+        "count": 132
+      },
+      {
+        "hour_local": 3,
+        "min": 39.0,
+        "max": 42.5,
+        "mean": 41.077024749293656,
+        "count": 119
+      },
+      {
+        "hour_local": 4,
+        "min": 39.4,
+        "max": 41.6,
+        "mean": 40.89608466246397,
+        "count": 116
+      },
+      {
+        "hour_local": 5,
+        "min": 0.0,
+        "max": 42.0,
+        "mean": 40.59040457750135,
+        "count": 124
+      },
+      {
+        "hour_local": 22,
+        "min": 39.333333333333336,
+        "max": 41.6,
+        "mean": 40.583489126409475,
+        "count": 113
+      },
+      {
+        "hour_local": 23,
+        "min": 39.333333333333336,
+        "max": 41.57142857142857,
+        "mean": 40.53109999073302,
+        "count": 109
+      }
+    ],
+    "anomalies": [
+      {
+        "date_local": "2026-06-13",
+        "night_min": 40.0,
+        "night_max": 42.5,
+        "night_mean": 41.32087957087957,
+        "night_count": 74,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-20",
+        "night_min": 0.0,
+        "night_max": 39.6,
+        "night_mean": 37.92160195360195,
+        "night_count": 25,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-06-21",
+        "night_min": 39.0,
+        "night_max": 40.666666666666664,
+        "night_mean": 39.86932773109244,
+        "night_count": 68,
+        "anomaly": "min_bajo"
+      }
+    ],
+    "recent_nights": [
+      {
+        "date_local": "2026-06-20",
+        "night_min": 0.0,
+        "night_max": 39.6,
+        "night_mean": 37.92160195360195,
+        "night_count": 25
+      },
+      {
+        "date_local": "2026-06-21",
+        "night_min": 39.0,
+        "night_max": 40.666666666666664,
+        "night_mean": 39.86932773109244,
+        "night_count": 68
+      },
+      {
+        "date_local": "2026-06-22",
+        "night_min": 40.0,
+        "night_max": 41.333333333333336,
+        "night_mean": 40.51503850901441,
+        "night_count": 83
+      },
+      {
+        "date_local": "2026-06-23",
+        "night_min": 39.5,
+        "night_max": 42.0,
+        "night_mean": 41.21073355867876,
+        "night_count": 73
+      },
+      {
+        "date_local": "2026-06-24",
+        "night_min": 39.5,
+        "night_max": 41.5,
+        "night_mean": 40.484993744253,
+        "night_count": 81
+      },
+      {
+        "date_local": "2026-06-25",
+        "night_min": 40.45454545454545,
+        "night_max": 41.57142857142857,
+        "night_mean": 41.37601195101195,
+        "night_count": 78
+      },
+      {
+        "date_local": "2026-06-26",
+        "night_min": 41.4,
+        "night_max": 42.0,
+        "night_mean": 41.50666290231507,
+        "night_count": 69
+      }
+    ]
+  },
+  "limits": {
+    "method": "L/H p10/p90 · LL/HH p02/p98",
+    "bandas_ll_hh": {
+      "method": "L/H p10/p90 · LL/HH p02/p98 por hora y dow",
+      "use_dow": true,
+      "l_pct": 10,
+      "h_pct": 90,
+      "ll_pct": 2,
+      "hh_pct": 98,
+      "dow_groups": [
+        "wd",
+        "sat",
+        "sun"
+      ],
+      "por_dow": {
+        "sat": {
+          "l_mean": 38.823,
+          "h_mean": 40.817,
+          "ll_mean": 36.897,
+          "hh_mean": 41.857,
+          "l_min": 35.067,
+          "h_max": 48.444,
+          "ll_min": 9.72,
+          "hh_max": 80.633,
+          "puntos": 330
+        },
+        "sun": {
+          "l_mean": 38.976,
+          "h_mean": 40.899,
+          "ll_mean": 37.459,
+          "hh_mean": 41.71,
+          "l_min": 35.067,
+          "h_max": 48.444,
+          "ll_min": 9.72,
+          "hh_max": 80.633,
+          "puntos": 448
+        },
+        "wd": {
+          "l_mean": 38.833,
+          "h_mean": 40.844,
+          "ll_mean": 37.823,
+          "hh_mean": 40.962,
+          "l_min": 31.682,
+          "h_max": 41.7,
+          "ll_min": 27.536,
+          "hh_max": 41.94,
+          "puntos": 2204
+        }
+      },
+      "l_actual": 35.53,
+      "h_actual": 40.5,
+      "ll_actual": 32.039,
+      "hh_actual": 40.5
+    },
+    "global": {
+      "l": 38.5,
+      "h": 41.5,
+      "ll": 36.462,
+      "hh": 41.571
+    },
+    "nocturno": {
+      "l": 39.133,
+      "h": 42.0,
+      "ll": 10.92,
+      "hh": 42.36,
+      "min_observado": 0.0,
+      "max_observado": 42.5,
+      "ventana": "22h–6h"
+    },
+    "diurno": {
+      "l": 29.3,
+      "h": 42.0,
+      "ll": 26.14,
+      "hh": 76.08,
+      "min_observado": 26.0,
+      "max_observado": 89.333,
+      "ventana": "6h–22h"
+    }
+  },
+  "current_alarm": {
+    "in_alarm": false,
+    "blink": false,
+    "rotura_inmediata": false,
+    "tipo": "",
+    "nivel": 0,
+    "franja": "bandas",
+    "l_activo": 35.53,
+    "h_activo": 40.5,
+    "ll_activo": 32.039,
+    "hh_activo": 40.5,
+    "valor": 37.667,
+    "ts": "2026-06-26 18:05:48-04:00",
+    "mensaje": "Dentro de rango normal",
+    "advertencia": false,
+    "confianza": "",
+    "duracion": 0,
+    "razon_cambio": 0.267,
+    "percentil": "",
+    "cambio_brusco": false,
+    "ignorado": false,
+    "prealarm": {
+      "score": 6.5,
+      "color": "normal",
+      "nivel": 0,
+      "componentes": {
+        "percentil": 0.0,
+        "razon_cambio": 22.0,
+        "persistencia": 0.0,
+        "tendencia": 6.7,
+        "correlacion": 0.0
+      },
+      "pesos": {
+        "percentil": 0.3,
+        "razon_cambio": 0.25,
+        "persistencia": 0.2,
+        "tendencia": 0.15,
+        "correlacion": 0.1
+      },
+      "umbrales": {
+        "amarillo": 60.0,
+        "naranja": 80.0,
+        "rojo": 95.0
+      }
+    }
+  },
+  "risk_assessment": {
+    "nivel": 1,
+    "estado": "vigilancia",
+    "tipo_variable": "caudal_entrada",
+    "tipo_label": "Caudal entrada",
+    "es_noche": false,
+    "reglas": [
+      "puntos_pegados"
+    ],
+    "mensaje": "Puntos pegados — posible sensor congelado",
+    "homolog": {
+      "valor_1d": 39.5,
+      "valor_7d": null,
+      "valor_30d": null,
+      "dev_pct_1d": -4.6,
+      "dev_pct_7d": null,
+      "dev_pct_30d": null
+    },
+    "valor": 37.667,
+    "ts": "2026-06-26 18:05:48-04:00"
+  },
+  "daily_stats": [
+    {
+      "date_local": "2026-06-12",
+      "nivel_medio": 41.054,
+      "nivel_min": 40.0,
+      "nivel_max": 41.571,
+      "nivel_fin": 41.167,
+      "pct_vs_dia": null,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-13",
+      "nivel_medio": 40.513,
+      "nivel_min": 39.0,
+      "nivel_max": 42.5,
+      "nivel_fin": 40.5,
+      "pct_vs_dia": -1.32,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-14",
+      "nivel_medio": 39.758,
+      "nivel_min": 33.5,
+      "nivel_max": 41.5,
+      "nivel_fin": 40.5,
+      "pct_vs_dia": -1.86,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-15",
+      "nivel_medio": 40.328,
+      "nivel_min": 38.6,
+      "nivel_max": 41.5,
+      "nivel_fin": 40.5,
+      "pct_vs_dia": 1.43,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-16",
+      "nivel_medio": 39.655,
+      "nivel_min": 26.5,
+      "nivel_max": 42.0,
+      "nivel_fin": 40.5,
+      "pct_vs_dia": -1.67,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-17",
+      "nivel_medio": 40.732,
+      "nivel_min": 39.5,
+      "nivel_max": 42.0,
+      "nivel_fin": 41.5,
+      "pct_vs_dia": 2.71,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-18",
+      "nivel_medio": 40.292,
+      "nivel_min": 38.0,
+      "nivel_max": 42.0,
+      "nivel_fin": 39.5,
+      "pct_vs_dia": -1.08,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-19",
+      "nivel_medio": 39.529,
+      "nivel_min": 38.0,
+      "nivel_max": 40.667,
+      "nivel_fin": 38.4,
+      "pct_vs_dia": -1.89,
+      "pct_vs_semana": -3.71,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-20",
+      "nivel_medio": 39.956,
+      "nivel_min": 0.0,
+      "nivel_max": 89.333,
+      "nivel_fin": 39.5,
+      "pct_vs_dia": 1.08,
+      "pct_vs_semana": -1.37,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-21",
+      "nivel_medio": 39.263,
+      "nivel_min": 37.0,
+      "nivel_max": 40.667,
+      "nivel_fin": 40.5,
+      "pct_vs_dia": -1.73,
+      "pct_vs_semana": -1.25,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-22",
+      "nivel_medio": 39.893,
+      "nivel_min": 38.0,
+      "nivel_max": 41.333,
+      "nivel_fin": 40.5,
+      "pct_vs_dia": 1.6,
+      "pct_vs_semana": -1.08,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-23",
+      "nivel_medio": 39.963,
+      "nivel_min": 37.333,
+      "nivel_max": 42.0,
+      "nivel_fin": 40.5,
+      "pct_vs_dia": 0.17,
+      "pct_vs_semana": 0.78,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-24",
+      "nivel_medio": 38.491,
+      "nivel_min": 26.0,
+      "nivel_max": 41.5,
+      "nivel_fin": 41.5,
+      "pct_vs_dia": -3.68,
+      "pct_vs_semana": -5.5,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-25",
+      "nivel_medio": 40.224,
+      "nivel_min": 38.333,
+      "nivel_max": 41.571,
+      "nivel_fin": 41.5,
+      "pct_vs_dia": 4.5,
+      "pct_vs_semana": -0.17,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-26",
+      "nivel_medio": 40.015,
+      "nivel_min": 36.333,
+      "nivel_max": 42.0,
+      "nivel_fin": 37.667,
+      "pct_vs_dia": -0.52,
+      "pct_vs_semana": 1.23,
+      "pct_vs_mes": null
+    }
+  ],
+  "sixsigma_summary": {
+    "stuck": 399,
+    "trend_down": 5,
+    "trend_up": 3,
+    "run_above": 45,
+    "run_below": 30,
+    "ooc_low": 1,
+    "ooc_high": 4
+  },
+  "model_metrics": {},
+  "classification_report": null,
+  "current_score": {
+    "prob": null,
+    "estado": "ok",
+    "nivel": 0,
+    "caudal": 37.667,
+    "ts": "2026-06-26 18:05:48-04:00"
+  },
+  "model_path": null
+}

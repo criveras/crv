@@ -1,0 +1,436 @@
+{
+  "generated_at": "2026-06-26T17:12:42.476213+00:00",
+  "point": "cp.mr.volumen_total",
+  "unit": "m³",
+  "fini": "*-14d",
+  "ma": 15,
+  "variable_profile": {
+    "label": "Volumen estanque",
+    "unit_default": "m³",
+    "riesgos": [
+      "rebalse",
+      "estanque_vacio"
+    ],
+    "hh_significa": "Volumen alto — riesgo de rebalse",
+    "ll_significa": "Volumen bajo — riesgo de estanque vacío",
+    "homolog_alerta": "Desvío vs ayer/semana en el volumen almacenado",
+    "rotura_relevante": false,
+    "type": "volumen",
+    "point": "cp.mr.volumen_total",
+    "unit": "m³"
+  },
+  "data_points": 1344,
+  "rupture_events": 0,
+  "pre_rupture_samples": 0,
+  "nocturnal": {
+    "summary": {
+      "n_nights": 15,
+      "min_nocturno_global": 1217.328,
+      "max_nocturno_global": 2732.496,
+      "mean_night_min": 1403.47,
+      "mean_night_max": 2367.685,
+      "p10_night_min": 1246.186,
+      "p90_night_max": 2635.297
+    },
+    "profile_hourly": [
+      {
+        "hour_local": 0,
+        "min": 1248.037391304348,
+        "max": 2194.447,
+        "mean": 1612.7823471869804,
+        "count": 56
+      },
+      {
+        "hour_local": 1,
+        "min": 1363.8742857142859,
+        "max": 2357.141714285715,
+        "mean": 1751.7861047379429,
+        "count": 55
+      },
+      {
+        "hour_local": 2,
+        "min": 1526.7188235294118,
+        "max": 2479.347575757576,
+        "mean": 1902.922200160676,
+        "count": 56
+      },
+      {
+        "hour_local": 3,
+        "min": 1606.7386842105261,
+        "max": 2497.2097297297296,
+        "mean": 2062.3296658159743,
+        "count": 56
+      },
+      {
+        "hour_local": 4,
+        "min": 1748.9991891891896,
+        "max": 2613.6681355932205,
+        "mean": 2214.6678571187344,
+        "count": 56
+      },
+      {
+        "hour_local": 5,
+        "min": 1991.2660000000003,
+        "max": 2732.49606060606,
+        "mean": 2364.5586239512045,
+        "count": 56
+      },
+      {
+        "hour_local": 22,
+        "min": 1244.9516666666666,
+        "max": 1945.2731428571433,
+        "mean": 1458.3103267517758,
+        "count": 56
+      },
+      {
+        "hour_local": 23,
+        "min": 1217.3282857142856,
+        "max": 2096.862666666667,
+        "mean": 1514.4394076481105,
+        "count": 56
+      }
+    ],
+    "anomalies": [
+      {
+        "date_local": "2026-06-15",
+        "night_min": 1350.8511428571428,
+        "night_max": 2732.49606060606,
+        "night_mean": 1997.122554569242,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-16",
+        "night_min": 1535.8747368421052,
+        "night_max": 2688.002682926829,
+        "night_mean": 2041.1997038502773,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-22",
+        "night_min": 1217.3282857142856,
+        "night_max": 2290.085,
+        "night_mean": 1734.7078678422083,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-06-25",
+        "night_min": 1244.9516666666666,
+        "night_max": 2546.0492105263156,
+        "night_mean": 1899.1934061838028,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      }
+    ],
+    "recent_nights": [
+      {
+        "date_local": "2026-06-20",
+        "night_min": 1269.096857142857,
+        "night_max": 2128.8736,
+        "night_mean": 1610.9049434747506,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-21",
+        "night_min": 1281.952592592593,
+        "night_max": 2438.371724137931,
+        "night_mean": 1737.0610015570958,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-22",
+        "night_min": 1217.3282857142856,
+        "night_max": 2290.085,
+        "night_mean": 1734.7078678422083,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-23",
+        "night_min": 1248.037391304348,
+        "night_max": 2389.026153846154,
+        "night_mean": 1670.890378710993,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-24",
+        "night_min": 1485.4905405405407,
+        "night_max": 2447.4378787878786,
+        "night_mean": 1845.285760641581,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-25",
+        "night_min": 1244.9516666666666,
+        "night_max": 2546.0492105263156,
+        "night_mean": 1899.1934061838028,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-26",
+        "night_min": 1428.7051282051286,
+        "night_max": 2556.239428571429,
+        "night_mean": 1949.8871940487772,
+        "night_count": 23
+      }
+    ]
+  },
+  "limits": {
+    "method": "p10/p90_daily_extremes",
+    "bandas_ll_hh": {
+      "method": "p10/p90_por_hora_y_dow",
+      "use_dow": true,
+      "ll_pct": 10,
+      "hh_pct": 90,
+      "dow_groups": [
+        "wd",
+        "sat",
+        "sun"
+      ],
+      "por_dow": {
+        "sat": {
+          "ll_mean": 1728.589,
+          "hh_mean": 2206.472,
+          "ll_min": 1254.884,
+          "hh_max": 2854.992,
+          "puntos": 192
+        },
+        "sun": {
+          "ll_mean": 1728.589,
+          "hh_mean": 2206.472,
+          "ll_min": 1254.884,
+          "hh_max": 2854.992,
+          "puntos": 192
+        },
+        "wd": {
+          "ll_mean": 1777.029,
+          "hh_mean": 2229.622,
+          "ll_min": 1256.864,
+          "hh_max": 2773.678,
+          "puntos": 960
+        }
+      },
+      "ll_actual": 2152.463,
+      "hh_actual": 2152.463
+    },
+    "global": {
+      "ll": 1275.69,
+      "hh": 2698.203
+    },
+    "nocturno": {
+      "ll": 1246.186,
+      "hh": 2635.297,
+      "min_observado": 1217.328,
+      "max_observado": 2732.496,
+      "ventana": "22h–6h"
+    },
+    "diurno": {
+      "ll": 1235.818,
+      "hh": 2865.214,
+      "min_observado": 1178.111,
+      "max_observado": 2959.833,
+      "ventana": "6h–22h"
+    }
+  },
+  "current_alarm": {
+    "in_alarm": false,
+    "blink": false,
+    "tipo": "",
+    "nivel": 0,
+    "franja": "bandas",
+    "ll_activo": 2152.463,
+    "hh_activo": 2152.463,
+    "bandas_metodo": "p10/p90_por_hora_y_dow",
+    "valor": 2152.463,
+    "ts": "2026-06-26 13:12:41-04:00",
+    "mensaje": "Dentro de límites"
+  },
+  "risk_assessment": {
+    "nivel": 0,
+    "estado": "ok",
+    "tipo_variable": "volumen",
+    "tipo_label": "Volumen estanque",
+    "es_noche": false,
+    "reglas": [],
+    "mensaje": "Comportamiento dentro de lo esperado",
+    "homolog": {
+      "valor_1d": 2031.496,
+      "valor_7d": 2081.686,
+      "valor_30d": null,
+      "dev_pct_1d": 6.0,
+      "dev_pct_7d": 3.4,
+      "dev_pct_30d": null
+    },
+    "valor": 2152.463,
+    "ts": "2026-06-26 13:12:41-04:00"
+  },
+  "daily_stats": [
+    {
+      "date_local": "2026-06-12",
+      "nivel_medio": 1568.979,
+      "nivel_min": 1509.019,
+      "nivel_max": 1654.75,
+      "nivel_fin": 1530.225,
+      "pct_vs_dia": null,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-13",
+      "nivel_medio": 1765.12,
+      "nivel_min": 1178.111,
+      "nivel_max": 2730.234,
+      "nivel_fin": 1449.422,
+      "pct_vs_dia": 12.5,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-14",
+      "nivel_medio": 2016.178,
+      "nivel_min": 1417.186,
+      "nivel_max": 2918.125,
+      "nivel_fin": 1549.191,
+      "pct_vs_dia": 14.22,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-15",
+      "nivel_medio": 1985.088,
+      "nivel_min": 1348.85,
+      "nivel_max": 2785.847,
+      "nivel_fin": 1491.587,
+      "pct_vs_dia": -1.54,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-16",
+      "nivel_medio": 2062.613,
+      "nivel_min": 1535.875,
+      "nivel_max": 2688.003,
+      "nivel_fin": 1689.639,
+      "pct_vs_dia": 3.91,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-17",
+      "nivel_medio": 2168.451,
+      "nivel_min": 1716.942,
+      "nivel_max": 2480.891,
+      "nivel_fin": 2030.909,
+      "pct_vs_dia": 5.13,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-18",
+      "nivel_medio": 2017.784,
+      "nivel_min": 1555.685,
+      "nivel_max": 2497.21,
+      "nivel_fin": 2096.863,
+      "pct_vs_dia": -6.95,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-19",
+      "nivel_medio": 1931.159,
+      "nivel_min": 1255.868,
+      "nivel_max": 2652.932,
+      "nivel_fin": 1312.844,
+      "pct_vs_dia": -4.29,
+      "pct_vs_semana": 23.08,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-20",
+      "nivel_medio": 1747.98,
+      "nivel_min": 1257.586,
+      "nivel_max": 2492.853,
+      "nivel_fin": 1366.848,
+      "pct_vs_dia": -9.49,
+      "pct_vs_semana": -0.97,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-21",
+      "nivel_medio": 1918.526,
+      "nivel_min": 1259.89,
+      "nivel_max": 2613.843,
+      "nivel_fin": 1423.258,
+      "pct_vs_dia": 9.76,
+      "pct_vs_semana": -4.84,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-22",
+      "nivel_medio": 2026.924,
+      "nivel_min": 1217.328,
+      "nivel_max": 2740.328,
+      "nivel_fin": 1230.356,
+      "pct_vs_dia": 5.65,
+      "pct_vs_semana": 2.11,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-23",
+      "nivel_medio": 1866.437,
+      "nivel_min": 1248.037,
+      "nivel_max": 2729.348,
+      "nivel_fin": 1461.58,
+      "pct_vs_dia": -7.92,
+      "pct_vs_semana": -9.51,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-24",
+      "nivel_medio": 1869.183,
+      "nivel_min": 1251.534,
+      "nivel_max": 2647.613,
+      "nivel_fin": 1596.283,
+      "pct_vs_dia": 0.15,
+      "pct_vs_semana": -13.8,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-25",
+      "nivel_medio": 1935.774,
+      "nivel_min": 1225.342,
+      "nivel_max": 2743.833,
+      "nivel_fin": 1395.214,
+      "pct_vs_dia": 3.56,
+      "pct_vs_semana": -4.06,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-26",
+      "nivel_medio": 2365.913,
+      "nivel_min": 1428.705,
+      "nivel_max": 2959.833,
+      "nivel_fin": 2152.463,
+      "pct_vs_dia": 22.22,
+      "pct_vs_semana": 22.51,
+      "pct_vs_mes": null
+    }
+  ],
+  "sixsigma_summary": {
+    "trend_down": 26,
+    "trend_up": 22,
+    "run_below": 17,
+    "run_above": 15
+  },
+  "model_metrics": {},
+  "classification_report": null,
+  "current_score": {
+    "prob": null,
+    "estado": "ok",
+    "nivel": 0,
+    "caudal": 2152.463,
+    "ts": "2026-06-26 13:12:41-04:00"
+  },
+  "model_path": null
+}

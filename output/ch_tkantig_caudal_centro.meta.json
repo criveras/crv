@@ -1,0 +1,32 @@
+{
+  "features": [
+    "hour",
+    "dow",
+    "is_night",
+    "value",
+    "lag_1",
+    "lag_2",
+    "lag_4",
+    "lag_8",
+    "delta_1",
+    "delta_2",
+    "delta_4",
+    "delta_up_4",
+    "delta_down_4",
+    "delta_max_4",
+    "dev_p50",
+    "dev_p80",
+    "dev_p95",
+    "ratio_p80",
+    "roll_mean_8",
+    "roll_std_8",
+    "roll_min_8",
+    "roll_max_8",
+    "vs_night_min",
+    "vs_night_max",
+    "night_range",
+    "night_min",
+    "night_max",
+    "night_mean"
+  ]
+}

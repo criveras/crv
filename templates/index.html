@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GPU Tag — {{ initial_point }}</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/portal.css') }}?v=4" />
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/stock/highcharts-more.js"></script>
+</head>
+<body>
+  <div class="app" data-point="{{ initial_point }}" data-unit="{{ default_unit }}">
+    <header class="topbar">
+      <h1 class="title">GPU Tag — pre-alarma rotura</h1>
+      <span id="badge" class="badge badge-ok">—</span>
+    </header>
+    <section class="filters">
+      <input type="search" id="point-search" class="ctl" placeholder="Buscar point…" />
+      <select id="sel-point" class="ctl ctl-point"></select>
+      <select id="sel-range" class="ctl">
+        <option value="*-14d" selected>2 semanas</option>
+        <option value="*-30d">30 días</option>
+        <option value="*-90d">90 días</option>
+        <option value="*-180d">180 días</option>
+        <option value="*-365d">1 año</option>
+      </select>
+      <select id="sel-ma" class="ctl">
+        <option value="1">MA 1</option>
+        <option value="5" selected>MA 5</option>
+        <option value="15">MA 15</option>
+        <option value="30">MA 30</option>
+        <option value="60">MA 60</option>
+      </select>
+      <button type="button" id="btn-analyze" class="btn btn-primary">Analizar GPU</button>
+      <button type="button" id="btn-refresh" class="btn">Actualizar</button>
+    </section>
+    <p id="status" class="status"></p>
+    <section class="chart-toolbar">
+      <div class="zoom-btns">
+        <span class="lbl">Zoom</span>
+        <button type="button" class="btn-z" data-zoom="1d">1d</button>
+        <button type="button" class="btn-z active" data-zoom="2d">2d</button>
+        <button type="button" class="btn-z" data-zoom="1w">1w</button>
+        <button type="button" class="btn-z" data-zoom="2w">2w</button>
+        <button type="button" class="btn-z" data-zoom="1m">1m</button>
+        <button type="button" class="btn-z" data-zoom="3m">3m</button>
+        <button type="button" class="btn-z" data-zoom="6m">6m</button>
+        <button type="button" class="btn-z" data-zoom="1y">Año</button>
+        <button type="button" class="btn-z" data-zoom="all">Todo</button>
+      </div>
+      <label class="chk"><input type="checkbox" id="chk-hide-pct" checked /> Ocultar percentiles</label>
+      <label class="chk"><input type="checkbox" id="chk-hide-lh" /> Ocultar bandas L/H/LL/HH</label>
+      <label class="chk lh-sigma-ctl"><input type="checkbox" id="chk-lh-sigma" /> Límite verde ±σ</label>
+      <select id="sel-lh-sigma" class="ctl ctl-sigma" disabled title="Desviaciones estándar para banda L–H">
+        <option value="1">±1σ</option>
+        <option value="2" selected>±2σ</option>
+        <option value="3">±3σ</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="chk-sixsigma" /> Six Sigma (±σ)</label>
+      <span class="chart-hint">Arrastra en el gráfico para seleccionar área · Shift+arrastrar para desplazar</span>
+    </section>
+    <section id="volume-toolbar" class="volume-toolbar hidden">
+      <span class="lbl">Caudal entrada (l/s)</span>
+      <select id="sel-qin-mode" class="ctl">
+        <option value="actual">Qin actual</option>
+        <option value="ideal">Qin ideal</option>
+        <option value="manual">Manual</option>
+      </select>
+      <input type="number" id="inp-qin-manual" class="ctl ctl-qin" step="0.01" min="0" placeholder="l/s" disabled />
+      <button type="button" id="btn-qin-apply" class="btn">Recalcular proyección</button>
+      <button type="button" id="btn-proj-table" class="btn btn-primary hidden">Tabla proyección volumen</button>
+      <span id="volume-meta" class="volume-meta"></span>
+    </section>
+    <div id="volume-projection-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="volume-projection-modal-title">
+      <div class="modal-backdrop" id="volume-projection-backdrop"></div>
+      <div class="modal-box">
+        <header class="modal-header">
+          <h2 id="volume-projection-modal-title" class="modal-title">Proyección de volumen — estanques</h2>
+          <button type="button" id="btn-proj-modal-close" class="btn" aria-label="Cerrar">✕</button>
+        </header>
+        <div class="modal-body">
+          <h3 class="modal-subtitle">Resumen estanques</h3>
+          <div id="volume-tanks-summary" class="table-wrap"></div>
+          <h3 class="modal-subtitle">Pasos intermedios (15 min) — estanque actual</h3>
+          <p id="volume-projection-caption" class="volume-projection-caption"></p>
+          <div id="volume-projection-detail" class="table-wrap modal-table-scroll"></div>
+        </div>
+      </div>
+    </div>
+    <div id="chart" class="chart"></div>
+    <div class="chart-legend" aria-hidden="true">
+      <span class="legend-lh" id="legend-lh-normal"><i class="sw lh-normal"></i> L–H normal (p10/p90)</span>
+      <span class="legend-lh"><i class="sw lh-warn"></i> LL–L / H–HH advertencia</span>
+      <span class="legend-lh"><i class="sw lh-alarm"></i> Alarma segura LL/HH</span>
+      <span class="legend-pct"><i class="sw p0595"></i> P05–P20 / P80–P95</span>
+      <span class="legend-pct"><i class="sw p2080"></i> P20–P80</span>
+      <span class="legend-pct"><i class="sw p50"></i> P50</span>
+      <span class="legend-sigma hidden"><i class="sw sigma3"></i> ±3σ</span>
+      <span class="legend-sigma hidden"><i class="sw sigma2"></i> ±2σ</span>
+      <span class="legend-sigma hidden"><i class="sw cl"></i> CL (media)</span>
+      <span class="legend-sigma hidden"><i class="sw pat-up"></i> Ascendente</span>
+      <span class="legend-sigma hidden"><i class="sw pat-stuck"></i> Pegado</span>
+      <span class="legend-vol hidden"><i class="sw vol-band"></i> Banda ideal ±10%</span>
+      <span class="legend-vol hidden"><i class="sw vol-band-proj"></i> Banda ideal proy. ±10%</span>
+      <span class="legend-vol hidden"><i class="sw vol-ideal"></i> Volumen ideal</span>
+      <span class="legend-vol hidden"><i class="sw vol-ideal-proj"></i> Volumen ideal proy.</span>
+      <span class="legend-vol hidden"><i class="sw vol-proj"></i> Proyección (qin usado)</span>
+      <span class="legend-vol hidden"><i class="sw vol-proj-ideal"></i> Proyección qin ideal</span>
+      <span><i class="sw now-line"></i> Ahora</span>
+      <span><i class="sw real"></i> Medición</span>
+      <span><i class="sw pt-warn"></i> Prealarma amarilla (≥60)</span>
+      <span><i class="sw pt-orange"></i> Prealarma naranja (≥80)</span>
+      <span><i class="sw pt-alarm"></i> Prealarma roja (≥95)</span>
+      <span><i class="sw rotura-inm"></i> Rotura inmediata</span>
+      <span><i class="sw rotura"></i> Rotura</span>
+      <span><i class="sw prerot"></i> Pre-rotura</span>
+    </div>
+    <div class="cards">
+      <div class="card"><span class="lbl">Tipo</span><strong id="v-tipo">—</strong></div>
+      <div class="card"><span class="lbl">Valor</span><strong id="v-caudal">—</strong></div>
+      <div class="card"><span class="lbl">Prob. pre-rotura</span><strong id="v-prob">—</strong></div>
+      <div class="card"><span class="lbl">vs ayer</span><strong id="v-homolog-1d">—</strong></div>
+      <div class="card"><span class="lbl">vs semana</span><strong id="v-homolog-7d">—</strong></div>
+      <div class="card"><span class="lbl">vs mes</span><strong id="v-homolog-30d">—</strong></div>
+      <div class="card"><span class="lbl">Roturas</span><strong id="v-ruptures">—</strong></div>
+      <div class="card"><span class="lbl">ROC-AUC</span><strong id="v-auc">—</strong></div>
+      <div class="card"><span class="lbl">Min nocturno</span><strong id="v-nmin">—</strong></div>
+      <div class="card"><span class="lbl">Max nocturno</span><strong id="v-nmax">—</strong></div>
+    </div>
+    <div class="panels">
+      <section class="panel panel-wide"><h2>Riesgo operacional</h2><div id="risk-panel" class="risk-panel"></div></section>
+      <section class="panel panel-wide" id="panel-daily-stats"><h2 id="daily-stats-title">Referencia diaria (%)</h2><div id="daily-stats" class="table-wrap"></div></section>
+      <section class="panel"><h2>Últimas noches</h2><div id="recent-nights" class="table-wrap"></div></section>
+      <section class="panel"><h2>Anomalías nocturnas</h2><div id="anomalies" class="table-wrap"></div></section>
+      <section class="panel"><h2>Top features</h2><ul id="features" class="feat-list"></ul></section>
+      <section class="panel"><h2>Patrones Six Sigma</h2><div id="sixsigma-patterns" class="table-wrap"></div></section>
+      <section class="panel"><h2>Análisis previos</h2><div id="history" class="table-wrap"></div></section>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/portal.js') }}?v=31"></script>
+</body>
+</html>

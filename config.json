@@ -1,0 +1,90 @@
+{
+  "point": "cp.pcp.huiliches",
+  "related_points": ["cp.pcp.huiliches.voltaje"],
+  "preset_points": [
+    "cp.pcp.huiliches",
+    "ca.copa.caudal_entrada_general",
+    "ca.copa.peap.salida_caudal",
+    "cp.capi.caudal_s3"
+  ],
+  "unit": "l/s",
+  "fini": "*-14d",
+  "ma": 5,
+  "night_start_hour": 22,
+  "night_end_hour": 6,
+  "timezone": "America/Santiago",
+  "delta_umbral": 3.0,
+  "win_min": 15,
+  "lookahead_min": 60,
+  "warn_low_pct": 10,
+  "warn_high_pct": 90,
+  "alarm_low_pct": 2,
+  "alarm_high_pct": 98,
+  "alarm_persistence_min": 3,
+  "alarm_persistence_max": 5,
+  "alarm_rate_factor": 2.5,
+  "rupture_lookback_steps": 12,
+  "rupture_spike_min": 1,
+  "rupture_min_drop": 3.0,
+  "rupture_drop_factor": 2.5,
+  "prealarm_weights": {
+    "percentil": 0.30,
+    "razon_cambio": 0.25,
+    "persistencia": 0.20,
+    "tendencia": 0.15,
+    "correlacion": 0.10
+  },
+  "prealarm_thresholds": {
+    "amarillo": 60,
+    "naranja": 80,
+    "rojo": 95
+  },
+  "prealarm_corr_window": 12,
+  "limit_low_pct": 10,
+  "limit_high_pct": 90,
+  "ll_hh_use_dow": true,
+  "sixsigma_enabled": true,
+  "sixsigma_stuck_eps": 0.02,
+  "sixsigma_stuck_min": 5,
+  "sixsigma_trend_len": 6,
+  "sixsigma_run_len": 8,
+  "homolog_pct_day": 20,
+  "homolog_pct_week": 25,
+  "homolog_pct_month": 25,
+  "variable_overrides": {
+    "ch.tkantig.nivel": { "type": "nivel", "unit": "m" }
+  },
+  "volume_band_pct": 0.10,
+  "volume_recintos": {
+    "cp.capi.volumen": "tk_capi",
+    "cp.plg.volumen": "tk_plg",
+    "cp.plg.volumen.p100": "tk_plg",
+    "cp.paipote.volumen": "tk_paipote",
+    "cp.mr.volumen_total": "tk_mr",
+    "cp.rosario.volumen": "tk_rosario",
+    "ta.tk_tamarilla.volumen": "tk_tamarilla"
+  },
+  "volume_flow_tags": {
+    "tk_paipote": {
+      "qin": "cp.paipote.caudal_entrada",
+      "vol": "cp.paipote.volumen"
+    },
+    "tk_capi": {
+      "qin": "cp.capi.caudal_entrada",
+      "vol": "cp.capi.volumen"
+    },
+    "tk_plg": {
+      "qin": "cp.plg.caudal_entrada",
+      "vol": "cp.plg.volumen"
+    },
+    "tk_mr": {
+      "qin": "cp.mr.caudal_entrada",
+      "vol": "cp.mr.volumen_total"
+    },
+    "tk_rosario": {
+      "qin": "cp.rosario.nuevo.entrada_caudal",
+      "vol": "cp.rosario.volumen"
+    }
+  },
+  "model_dir": "output"
+}

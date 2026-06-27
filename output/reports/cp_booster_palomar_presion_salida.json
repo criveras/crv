@@ -1,0 +1,570 @@
+{
+  "generated_at": "2026-06-26T21:24:13.893993+00:00",
+  "point": "cp.booster_palomar.presion_salida",
+  "unit": "bar",
+  "fini": "*-14d",
+  "ma": 1,
+  "variable_profile": {
+    "label": "Presión",
+    "unit_default": "bar",
+    "riesgos": [
+      "rotura_nocturna",
+      "presion_baja"
+    ],
+    "hh_significa": "Presión alta — en la noche (bajo consumo) aumenta riesgo de rotura",
+    "ll_significa": "Presión mínima operativa",
+    "homolog_alerta": "Subida nocturna de presión vs histórico",
+    "rotura_relevante": true,
+    "type": "presion",
+    "point": "cp.booster_palomar.presion_salida",
+    "unit": "bar"
+  },
+  "data_points": 19952,
+  "rupture_events": 380,
+  "pre_rupture_samples": 4841,
+  "nocturnal": {
+    "summary": {
+      "n_nights": 15,
+      "min_nocturno_global": 24.923,
+      "max_nocturno_global": 41.152,
+      "mean_night_min": 25.859,
+      "mean_night_max": 38.94,
+      "p10_night_min": 25.089,
+      "p90_night_max": 40.908
+    },
+    "profile_hourly": [
+      {
+        "hour_local": 0,
+        "min": 26.18985,
+        "max": 28.6073,
+        "mean": 27.497269679012344,
+        "count": 810
+      },
+      {
+        "hour_local": 1,
+        "min": 26.8844,
+        "max": 29.175,
+        "mean": 28.057521793325293,
+        "count": 829
+      },
+      {
+        "hour_local": 2,
+        "min": 27.1781,
+        "max": 29.629166666666663,
+        "mean": 28.52078080832333,
+        "count": 833
+      },
+      {
+        "hour_local": 3,
+        "min": 27.5406,
+        "max": 29.79583333333333,
+        "mean": 28.875961353293413,
+        "count": 835
+      },
+      {
+        "hour_local": 4,
+        "min": 27.8281,
+        "max": 30.1031,
+        "mean": 29.221283544657094,
+        "count": 836
+      },
+      {
+        "hour_local": 5,
+        "min": 28.4359,
+        "max": 30.3453,
+        "mean": 29.410432976475278,
+        "count": 836
+      },
+      {
+        "hour_local": 22,
+        "min": 24.9229,
+        "max": 41.1516,
+        "mean": 33.30327463672655,
+        "count": 835
+      },
+      {
+        "hour_local": 23,
+        "min": 25.25155,
+        "max": 40.684400000000004,
+        "mean": 28.54668188929001,
+        "count": 831
+      }
+    ],
+    "anomalies": [
+      {
+        "date_local": "2026-06-17",
+        "night_min": 26.18985,
+        "night_max": 40.9469,
+        "night_mean": 29.07655179567643,
+        "night_count": 478,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-06-20",
+        "night_min": 24.9229,
+        "night_max": 29.45625,
+        "night_mean": 27.588169971929823,
+        "night_count": 475,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-06-21",
+        "night_min": 24.981250000000003,
+        "night_max": 41.1516,
+        "night_mean": 29.092714082278484,
+        "night_count": 474,
+        "anomaly": "min_bajo_y_max_alto"
+      }
+    ],
+    "recent_nights": [
+      {
+        "date_local": "2026-06-20",
+        "night_min": 24.9229,
+        "night_max": 29.45625,
+        "night_mean": 27.588169971929823,
+        "night_count": 475
+      },
+      {
+        "date_local": "2026-06-21",
+        "night_min": 24.981250000000003,
+        "night_max": 41.1516,
+        "night_mean": 29.092714082278484,
+        "night_count": 474
+      },
+      {
+        "date_local": "2026-06-22",
+        "night_min": 25.25155,
+        "night_max": 40.26043333333333,
+        "night_mean": 29.355494852941177,
+        "night_count": 476
+      },
+      {
+        "date_local": "2026-06-23",
+        "night_min": 26.489566666666665,
+        "night_max": 40.676550000000006,
+        "night_mean": 30.37026014184397,
+        "night_count": 470
+      },
+      {
+        "date_local": "2026-06-24",
+        "night_min": 25.503125,
+        "night_max": 40.84845,
+        "night_mean": 28.565112727591035,
+        "night_count": 476
+      },
+      {
+        "date_local": "2026-06-25",
+        "night_min": 26.188533333333336,
+        "night_max": 40.193749999999994,
+        "night_mean": 29.65677753472222,
+        "night_count": 480
+      },
+      {
+        "date_local": "2026-06-26",
+        "night_min": 26.5552,
+        "night_max": 29.771866666666668,
+        "night_mean": 28.687521627450977,
+        "night_count": 340
+      }
+    ]
+  },
+  "limits": {
+    "method": "L/H p10/p90 · LL/HH p02/p98",
+    "bandas_ll_hh": {
+      "method": "L/H p10/p90 · LL/HH p02/p98 por hora y dow",
+      "use_dow": true,
+      "l_pct": 10,
+      "h_pct": 90,
+      "ll_pct": 2,
+      "hh_pct": 98,
+      "dow_groups": [
+        "wd",
+        "sat",
+        "sun"
+      ],
+      "por_dow": {
+        "sat": {
+          "l_mean": 28.826,
+          "h_mean": 32.679,
+          "ll_mean": 28.235,
+          "hh_mean": 34.049,
+          "l_min": 25.657,
+          "h_max": 39.832,
+          "ll_min": 23.983,
+          "hh_max": 40.849,
+          "puntos": 2839
+        },
+        "sun": {
+          "l_mean": 28.825,
+          "h_mean": 32.68,
+          "ll_mean": 28.231,
+          "hh_mean": 34.05,
+          "l_min": 25.657,
+          "h_max": 39.832,
+          "ll_min": 23.983,
+          "hh_max": 40.849,
+          "puntos": 2850
+        },
+        "wd": {
+          "l_mean": 29.127,
+          "h_mean": 32.601,
+          "ll_mean": 28.733,
+          "hh_mean": 33.847,
+          "l_min": 25.922,
+          "h_max": 40.134,
+          "ll_min": 24.674,
+          "hh_max": 40.942,
+          "puntos": 14263
+        }
+      },
+      "l_actual": 29.938,
+      "h_actual": 34.683,
+      "ll_actual": 29.482,
+      "hh_actual": 36.56
+    },
+    "global": {
+      "l": 27.62,
+      "h": 35.516,
+      "ll": 26.613,
+      "hh": 38.548
+    },
+    "nocturno": {
+      "l": 25.089,
+      "h": 40.908,
+      "ll": 24.939,
+      "hh": 41.094,
+      "min_observado": 24.923,
+      "max_observado": 41.152,
+      "ventana": "22h–6h"
+    },
+    "diurno": {
+      "l": 23.764,
+      "h": 40.473,
+      "ll": 22.819,
+      "hh": 40.657,
+      "min_observado": 22.504,
+      "max_observado": 40.675,
+      "ventana": "6h–22h"
+    }
+  },
+  "current_alarm": {
+    "in_alarm": false,
+    "blink": false,
+    "rotura_inmediata": false,
+    "tipo": "",
+    "nivel": 0,
+    "franja": "bandas",
+    "l_activo": 29.938,
+    "h_activo": 34.683,
+    "ll_activo": 29.482,
+    "hh_activo": 36.56,
+    "valor": 29.369,
+    "ts": "2026-06-26 17:20:27-04:00",
+    "mensaje": "Dentro de rango normal (score 35).",
+    "advertencia": false,
+    "confianza": "baja",
+    "duracion": 1,
+    "razon_cambio": -0.654,
+    "percentil": "LL p02",
+    "cambio_brusco": false,
+    "ignorado": false,
+    "prealarm": {
+      "score": 35.1,
+      "color": "normal",
+      "nivel": 0,
+      "componentes": {
+        "percentil": 80.8,
+        "razon_cambio": 21.4,
+        "persistencia": 20.0,
+        "tendencia": 6.7,
+        "correlacion": 5.0
+      },
+      "pesos": {
+        "percentil": 0.3,
+        "razon_cambio": 0.25,
+        "persistencia": 0.2,
+        "tendencia": 0.15,
+        "correlacion": 0.1
+      },
+      "umbrales": {
+        "amarillo": 60.0,
+        "naranja": 80.0,
+        "rojo": 95.0
+      }
+    }
+  },
+  "risk_assessment": {
+    "nivel": 3,
+    "estado": "alarma",
+    "tipo_variable": "presion",
+    "tipo_label": "Presión",
+    "es_noche": false,
+    "reglas": [
+      "bajo_l",
+      "bajo_ll",
+      "tendencia_ascendente"
+    ],
+    "mensaje": "Presión mínima operativa; Valor 29.3687 < LL alarma segura (29.48246); Tendencia ascendente sostenida (Six Sigma)",
+    "homolog": {
+      "valor_1d": 29.938,
+      "valor_7d": 30.592,
+      "valor_30d": null,
+      "dev_pct_1d": -1.9,
+      "dev_pct_7d": -4.0,
+      "dev_pct_30d": null
+    },
+    "valor": 29.369,
+    "ts": "2026-06-26 17:20:27-04:00"
+  },
+  "daily_stats": [
+    {
+      "date_local": "2026-06-12",
+      "nivel_medio": 30.959,
+      "nivel_min": 25.977,
+      "nivel_max": 39.616,
+      "nivel_fin": 27.278,
+      "pct_vs_dia": null,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-13",
+      "nivel_medio": 30.116,
+      "nivel_min": 23.628,
+      "nivel_max": 40.573,
+      "nivel_fin": 27.67,
+      "pct_vs_dia": -2.72,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-14",
+      "nivel_medio": 29.822,
+      "nivel_min": 25.664,
+      "nivel_max": 40.196,
+      "nivel_fin": 27.541,
+      "pct_vs_dia": -0.98,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-15",
+      "nivel_medio": 30.774,
+      "nivel_min": 26.342,
+      "nivel_max": 40.684,
+      "nivel_fin": 27.322,
+      "pct_vs_dia": 3.19,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-16",
+      "nivel_medio": 30.62,
+      "nivel_min": 25.837,
+      "nivel_max": 40.652,
+      "nivel_fin": 27.28,
+      "pct_vs_dia": -0.5,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-17",
+      "nivel_medio": 32.539,
+      "nivel_min": 26.19,
+      "nivel_max": 40.947,
+      "nivel_fin": 27.551,
+      "pct_vs_dia": 6.27,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-18",
+      "nivel_medio": 31.014,
+      "nivel_min": 25.806,
+      "nivel_max": 39.922,
+      "nivel_fin": 27.287,
+      "pct_vs_dia": -4.69,
+      "pct_vs_semana": null,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-19",
+      "nivel_medio": 30.882,
+      "nivel_min": 25.594,
+      "nivel_max": 40.612,
+      "nivel_fin": 26.318,
+      "pct_vs_dia": -0.43,
+      "pct_vs_semana": -0.25,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-20",
+      "nivel_medio": 29.827,
+      "nivel_min": 22.504,
+      "nivel_max": 40.05,
+      "nivel_fin": 26.905,
+      "pct_vs_dia": -3.42,
+      "pct_vs_semana": -0.96,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-21",
+      "nivel_medio": 30.857,
+      "nivel_min": 24.981,
+      "nivel_max": 41.152,
+      "nivel_fin": 27.246,
+      "pct_vs_dia": 3.45,
+      "pct_vs_semana": 3.47,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-22",
+      "nivel_medio": 30.327,
+      "nivel_min": 23.967,
+      "nivel_max": 40.675,
+      "nivel_fin": 26.906,
+      "pct_vs_dia": -1.72,
+      "pct_vs_semana": -1.45,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-23",
+      "nivel_medio": 30.915,
+      "nivel_min": 26.087,
+      "nivel_max": 40.677,
+      "nivel_fin": 27.425,
+      "pct_vs_dia": 1.94,
+      "pct_vs_semana": 0.97,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-24",
+      "nivel_medio": 30.441,
+      "nivel_min": 25.503,
+      "nivel_max": 40.848,
+      "nivel_fin": 27.408,
+      "pct_vs_dia": -1.54,
+      "pct_vs_semana": -6.45,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-25",
+      "nivel_medio": 31.244,
+      "nivel_min": 26.189,
+      "nivel_max": 40.264,
+      "nivel_fin": 27.72,
+      "pct_vs_dia": 2.64,
+      "pct_vs_semana": 0.74,
+      "pct_vs_mes": null
+    },
+    {
+      "date_local": "2026-06-26",
+      "nivel_medio": 29.592,
+      "nivel_min": 26.502,
+      "nivel_max": 34.936,
+      "nivel_fin": 29.369,
+      "pct_vs_dia": -5.29,
+      "pct_vs_semana": -4.18,
+      "pct_vs_mes": null
+    }
+  ],
+  "sixsigma_summary": {
+    "trend_up": 89,
+    "trend_down": 94,
+    "run_below": 301,
+    "run_above": 203,
+    "ooc_low": 13,
+    "ooc_high": 1
+  },
+  "model_metrics": {
+    "features": [
+      "hour",
+      "dow",
+      "is_night",
+      "value",
+      "lag_1",
+      "lag_2",
+      "lag_4",
+      "lag_8",
+      "delta_1",
+      "delta_2",
+      "delta_4",
+      "delta_up_4",
+      "delta_down_4",
+      "delta_max_4",
+      "dev_p50",
+      "dev_p80",
+      "dev_p95",
+      "ratio_p80",
+      "roll_mean_8",
+      "roll_std_8",
+      "roll_min_8",
+      "roll_max_8",
+      "vs_night_min",
+      "vs_night_max",
+      "night_range",
+      "night_min",
+      "night_max",
+      "night_mean"
+    ],
+    "train_size": 15961,
+    "test_size": 3991,
+    "positives_train": 3902,
+    "positives_test": 939,
+    "roc_auc": 0.8584,
+    "top_features": [
+      {
+        "feature": "value",
+        "importance": 0.275
+      },
+      {
+        "feature": "is_night",
+        "importance": 0.1713
+      },
+      {
+        "feature": "roll_max_8",
+        "importance": 0.0771
+      },
+      {
+        "feature": "night_min",
+        "importance": 0.0523
+      },
+      {
+        "feature": "roll_mean_8",
+        "importance": 0.0495
+      },
+      {
+        "feature": "lag_1",
+        "importance": 0.0417
+      },
+      {
+        "feature": "hour",
+        "importance": 0.0394
+      },
+      {
+        "feature": "night_range",
+        "importance": 0.0295
+      },
+      {
+        "feature": "night_max",
+        "importance": 0.029
+      },
+      {
+        "feature": "dow",
+        "importance": 0.0284
+      }
+    ]
+  },
+  "classification_report": "              precision    recall  f1-score   support\n\n           0       0.87      0.88      0.87      3052\n           1       0.59      0.57      0.58       939\n\n    accuracy                           0.81      3991\n   macro avg       0.73      0.72      0.73      3991\nweighted avg       0.80      0.81      0.80      3991\n",
+  "current_score": {
+    "prob": 0.0594,
+    "nivel": 0,
+    "estado": "ok",
+    "ts": "2026-06-26 17:20:27-04:00",
+    "caudal": 29.369,
+    "delta_4": -3.115,
+    "dev_p80": -4.515,
+    "vs_night_min": 2.814
+  },
+  "model_path": "/home/criveras/app/gpu_tag/output/cp_booster_palomar_presion_salida.json"
+}

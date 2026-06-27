@@ -1,0 +1,27 @@
+{
+  "sqlite": "/home/criveras/app/rt3-ia/corr_tk_rosario-escorial.sqlite",
+  "target": "cp_nivel_tk_rosario2",
+  "model": "gru",
+  "window": 24,
+  "horizon": 12,
+  "metrics": {
+    "train_mse": 0.0003689134529348,
+    "train_mae": 0.014699906044391812,
+    "val_mse": 0.0004919357306003725,
+    "val_mae": 0.01737817529669412,
+    "test_mse": 0.0007129311858114066,
+    "test_mae": 0.019253837446759976
+  },
+  "top_corr_with_target": {
+    "cp_nivel_tk_rosario2": 1.0,
+    "n_rosario": 0.9996051791962182,
+    "cp_ro_volumen1": 0.9905336429075723,
+    "cp_esc_volumen1": 0.6637481362108082,
+    "cp_ros_rect2_new": -0.012964954630037362,
+    "q_salida rosario": -0.08224110122951277,
+    "cp_escorial_consumoxhr": -0.10997401968507964,
+    "cp_ppaz_fit": -0.1691271785424593,
+    "cp_escorial_entrada_caudal": -0.18370914569445007,
+    "cp_rosario_consumoxhr": -0.22923198156673832
+  }
+}

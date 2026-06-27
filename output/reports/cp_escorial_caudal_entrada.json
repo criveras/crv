@@ -1,0 +1,413 @@
+{
+  "generated_at": "2026-06-26T01:51:25.023409+00:00",
+  "point": "cp.escorial.caudal_entrada",
+  "unit": "l/s",
+  "fini": "*-90d",
+  "ma": 15,
+  "data_points": 8473,
+  "rupture_events": 12,
+  "pre_rupture_samples": 36,
+  "nocturnal": {
+    "summary": {
+      "n_nights": 91,
+      "min_nocturno_global": 0.006,
+      "max_nocturno_global": 5.859,
+      "mean_night_min": 2.721,
+      "mean_night_max": 4.75,
+      "p10_night_min": 0.008,
+      "p90_night_max": 5.279
+    },
+    "profile_hourly": [
+      {
+        "hour_local": 0,
+        "min": 1.7917047619047612,
+        "max": 5.84847894736842,
+        "mean": 4.328830143005238,
+        "count": 354
+      },
+      {
+        "hour_local": 1,
+        "min": 0.009250000000000001,
+        "max": 5.849514285714285,
+        "mean": 4.293551297788903,
+        "count": 356
+      },
+      {
+        "hour_local": 2,
+        "min": 0.0083,
+        "max": 5.850775,
+        "mean": 4.104251702765224,
+        "count": 356
+      },
+      {
+        "hour_local": 3,
+        "min": 0.007205263157894736,
+        "max": 5.83320909090909,
+        "mean": 3.9144209292366816,
+        "count": 356
+      },
+      {
+        "hour_local": 4,
+        "min": 0.00687674418604651,
+        "max": 5.858427906976743,
+        "mean": 3.403649135405525,
+        "count": 356
+      },
+      {
+        "hour_local": 5,
+        "min": 0.006402272727272728,
+        "max": 5.858780000000001,
+        "mean": 3.260818306529824,
+        "count": 356
+      },
+      {
+        "hour_local": 22,
+        "min": 2.7384272727272725,
+        "max": 5.8417789473684225,
+        "mean": 4.465648906182996,
+        "count": 351
+      },
+      {
+        "hour_local": 23,
+        "min": 1.3114341463414634,
+        "max": 5.846355555555556,
+        "mean": 4.407877251819559,
+        "count": 357
+      }
+    ],
+    "anomalies": [
+      {
+        "date_local": "2026-03-28",
+        "night_min": 4.481048780487805,
+        "night_max": 5.834713513513514,
+        "night_mean": 4.822792368572883,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-03-29",
+        "night_min": 0.006924999999999999,
+        "night_max": 5.846355555555556,
+        "night_mean": 4.740316219689519,
+        "night_count": 32,
+        "anomaly": "min_bajo_y_max_alto"
+      },
+      {
+        "date_local": "2026-03-30",
+        "night_min": 0.007256410256410257,
+        "night_max": 5.858780000000001,
+        "night_mean": 3.8108604091978426,
+        "night_count": 32,
+        "anomaly": "min_bajo_y_max_alto"
+      },
+      {
+        "date_local": "2026-04-10",
+        "night_min": 0.007345,
+        "night_max": 4.60295357142857,
+        "night_mean": 3.412195353182613,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-11",
+        "night_min": 0.007118421052631578,
+        "night_max": 4.738888636363636,
+        "night_mean": 3.270425041146109,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-04-13",
+        "night_min": 1.3114341463414634,
+        "night_max": 5.290059999999998,
+        "night_mean": 4.6589428037575304,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-04-18",
+        "night_min": 3.4284375,
+        "night_max": 5.285084090909091,
+        "night_mean": 3.904859485790698,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-04-19",
+        "night_min": 3.8594948717948707,
+        "night_max": 5.28527105263158,
+        "night_mean": 4.006668651059074,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-05-09",
+        "night_min": 4.489538888888888,
+        "night_max": 5.821349999999999,
+        "night_mean": 4.825034099874008,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-05-10",
+        "night_min": 0.007523404255319144,
+        "night_max": 5.818781395348838,
+        "night_mean": 4.0016893189953375,
+        "night_count": 32,
+        "anomaly": "min_bajo_y_max_alto"
+      },
+      {
+        "date_local": "2026-05-12",
+        "night_min": 0.007497674418604652,
+        "night_max": 4.671836363636363,
+        "night_mean": 3.8864377220456223,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-05-17",
+        "night_min": 0.007991891891891893,
+        "night_max": 5.665765853658537,
+        "night_mean": 3.256233389708688,
+        "night_count": 32,
+        "anomaly": "max_alto"
+      },
+      {
+        "date_local": "2026-05-26",
+        "night_min": 0.006402272727272728,
+        "night_max": 4.620317021276596,
+        "night_mean": 3.572640380779549,
+        "night_count": 31,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-06-15",
+        "night_min": 0.007095348837209301,
+        "night_max": 5.278269767441861,
+        "night_mean": 3.779148343371861,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      },
+      {
+        "date_local": "2026-06-18",
+        "night_min": 0.007205263157894736,
+        "night_max": 4.593999999999999,
+        "night_mean": 2.9228356196144993,
+        "night_count": 32,
+        "anomaly": "min_bajo"
+      }
+    ],
+    "recent_nights": [
+      {
+        "date_local": "2026-06-19",
+        "night_min": 2.3904999999999994,
+        "night_max": 4.582183333333335,
+        "night_mean": 3.0338085093674794,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-20",
+        "night_min": 4.371871052631579,
+        "night_max": 4.5821575,
+        "night_mean": 4.430257043836031,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-21",
+        "night_min": 4.455296774193549,
+        "night_max": 5.192052272727274,
+        "night_mean": 4.717897719604567,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-22",
+        "night_min": 2.990878947368419,
+        "night_max": 5.212541860465116,
+        "night_mean": 3.726985389984329,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-23",
+        "night_min": 3.815370270270271,
+        "night_max": 4.569548717948717,
+        "night_mean": 4.022394942428949,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-24",
+        "night_min": 4.189089130434782,
+        "night_max": 4.57040625,
+        "night_mean": 4.465974065645877,
+        "night_count": 32
+      },
+      {
+        "date_local": "2026-06-25",
+        "night_min": 4.189871739130433,
+        "night_max": 4.196508510638298,
+        "night_mean": 4.194501067394021,
+        "night_count": 24
+      }
+    ]
+  },
+  "limits": {
+    "method": "p10/p90_daily_extremes",
+    "bandas_ll_hh": {
+      "method": "p10/p90_por_hora_y_dow",
+      "use_dow": true,
+      "ll_pct": 10,
+      "hh_pct": 90,
+      "dow_groups": [
+        "wd",
+        "sat",
+        "sun"
+      ],
+      "por_dow": {
+        "sat": {
+          "ll_mean": 3.535,
+          "hh_mean": 5.135,
+          "ll_min": 0.516,
+          "hh_max": 5.744,
+          "puntos": 1240
+        },
+        "sun": {
+          "ll_mean": 3.198,
+          "hh_mean": 5.58,
+          "ll_min": 0.008,
+          "hh_max": 5.775,
+          "puntos": 1243
+        },
+        "wd": {
+          "ll_mean": 3.286,
+          "hh_mean": 4.713,
+          "ll_min": 0.008,
+          "hh_max": 4.949,
+          "puntos": 5990
+        }
+      },
+      "ll_actual": 4.196,
+      "hh_actual": 4.196
+    },
+    "global": {
+      "ll": 2.572,
+      "hh": 5.277
+    },
+    "nocturno": {
+      "ll": 0.008,
+      "hh": 5.279,
+      "min_observado": 0.006,
+      "max_observado": 5.859,
+      "ventana": "22h–6h"
+    },
+    "diurno": {
+      "ll": 0.008,
+      "hh": 5.281,
+      "min_observado": 0.007,
+      "max_observado": 5.844,
+      "ventana": "6h–22h"
+    }
+  },
+  "current_alarm": {
+    "in_alarm": false,
+    "blink": false,
+    "tipo": "",
+    "nivel": 0,
+    "franja": "bandas",
+    "ll_activo": 4.196217647058823,
+    "hh_activo": 4.196217647058823,
+    "bandas_metodo": "p10/p90_por_hora_y_dow",
+    "valor": 4.196,
+    "ts": "2026-06-25 21:51:09-04:00",
+    "mensaje": "Dentro de límites"
+  },
+  "model_metrics": {
+    "features": [
+      "hour",
+      "dow",
+      "is_night",
+      "value",
+      "lag_1",
+      "lag_2",
+      "lag_4",
+      "lag_8",
+      "delta_1",
+      "delta_2",
+      "delta_4",
+      "delta_up_4",
+      "delta_down_4",
+      "delta_max_4",
+      "dev_p50",
+      "dev_p80",
+      "dev_p95",
+      "ratio_p80",
+      "roll_mean_8",
+      "roll_std_8",
+      "roll_min_8",
+      "roll_max_8",
+      "vs_night_min",
+      "vs_night_max",
+      "night_range",
+      "night_min",
+      "night_max",
+      "night_mean"
+    ],
+    "train_size": 6778,
+    "test_size": 1695,
+    "positives_train": 27,
+    "positives_test": 9,
+    "roc_auc": 0.996,
+    "top_features": [
+      {
+        "feature": "roll_min_8",
+        "importance": 0.5699
+      },
+      {
+        "feature": "lag_1",
+        "importance": 0.2302
+      },
+      {
+        "feature": "lag_2",
+        "importance": 0.0897
+      },
+      {
+        "feature": "night_mean",
+        "importance": 0.021
+      },
+      {
+        "feature": "roll_std_8",
+        "importance": 0.0198
+      },
+      {
+        "feature": "night_range",
+        "importance": 0.0159
+      },
+      {
+        "feature": "night_max",
+        "importance": 0.0123
+      },
+      {
+        "feature": "roll_mean_8",
+        "importance": 0.0062
+      },
+      {
+        "feature": "dev_p50",
+        "importance": 0.0053
+      },
+      {
+        "feature": "dow",
+        "importance": 0.0035
+      }
+    ]
+  },
+  "classification_report": "              precision    recall  f1-score   support\n\n           0       1.00      1.00      1.00      1686\n           1       0.50      0.56      0.53         9\n\n    accuracy                           0.99      1695\n   macro avg       0.75      0.78      0.76      1695\nweighted avg       0.99      0.99      0.99      1695\n",
+  "current_score": {
+    "prob": 0.0,
+    "nivel": 0,
+    "estado": "ok",
+    "ts": "2026-06-25 21:51:09-04:00",
+    "caudal": 4.196,
+    "delta_4": 0.0,
+    "dev_p80": 0.0,
+    "vs_night_min": 0.006
+  },
+  "model_path": "/home/criveras/app/gpu_tag/output/cp_escorial_caudal_entrada.json"
+}
