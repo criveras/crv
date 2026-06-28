@@ -55,6 +55,22 @@ if "payload[\"step_patterns\"]" not in txt:
 else:
     print("OK: payload step_patterns ya existe")
 
+step_parse = "    step_enabled = _parse_bool(request.args.get(\"step\"))\n"
+if step_parse not in txt:
+    marker = "    sigma_alarm = _parse_bool(request.args.get(\"sigma_alarm\"))\n"
+    txt = txt.replace(marker, marker + step_parse)
+    print("OK: parse step agregado")
+else:
+    print("OK: parse step ya existe")
+
+log_line = """        if step_enabled:\n            print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
+if "[LL/HH STEP] marcado" not in txt:
+    marker = "        cfg = _cfg_for_point(point, {\"fini\": fini, \"ma\": ma, \"point\": point})\n"
+    txt = txt.replace(marker, log_line + marker)
+    print("OK: log LL/HH STEP agregado")
+else:
+    print("OK: log LL/HH STEP ya existe")
+
 p.write_text(txt, encoding="utf-8")
 PY
 
@@ -125,7 +141,7 @@ pip install -r requirements.txt
 echo ""
 echo "9) Verificacion rapida:"
 grep -E "step-hourly-layer|chart-layer-controls|auto-step" templates/index.html || true
-grep -n "step_patterns\|build_step_overlay" app.py || true
+grep -n "step_patterns\|build_step_overlay\|LL/HH STEP\|step_enabled" app.py || true
 
 echo ""
 echo "10) Estado Git:"
