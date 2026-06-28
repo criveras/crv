@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
-"""Patron horario LL/HH aprendido para graficos step.
-
-Calcula una banda por hora separando:
-- lunes a viernes normal
-- sabado/domingo
-- feriados Chile que caen lunes-viernes
-
-El patron se guarda en output/patterns/*.json para usarlo desde /api/chart sin recalcular en el navegador.
-"""
+"""Patron horario LL/HH aprendido para graficos step."""
 
 from __future__ import annotations
 
@@ -34,8 +26,7 @@ def _safe_name(point: str) -> str:
 
 
 def pattern_dir(cfg: dict | None = None) -> Path:
-    base = Path((cfg or {}).get("model_dir", "output"))
-    return base / "patterns"
+    return Path((cfg or {}).get("model_dir", "output")) / "patterns"
 
 
 def pattern_path(point: str, cfg: dict | None = None) -> Path:
@@ -64,21 +55,22 @@ def is_chile_holiday(dt: datetime) -> bool:
         "01-01", "05-01", "05-21", "06-20", "06-29", "07-16", "08-15",
         "09-18", "09-19", "10-12", "10-31", "11-01", "12-08", "12-25",
     }
-    md = dt.strftime("%m-%d")
-    if md in fixed:
+    if dt.strftime("%m-%d") in fixed:
         return True
     easter = _easter_date(dt.year)
     return dt.date() in {(easter - timedelta(days=2)).date(), (easter - timedelta(days=1)).date()}
 
 
-def day_type(ts: pd.Timestamp | datetime, cfg: dict | None = None) -> str:
+def _local(ts: pd.Timestamp | datetime, cfg: dict | None = None) -> pd.Timestamp:
     tz = _tz(cfg)
     t = pd.Timestamp(ts)
     if t.tzinfo is None:
-        local = t.tz_localize(tz)
-    else:
-        local = t.tz_convert(tz)
-    py = local.to_pydatetime()
+        return t.tz_localize(tz)
+    return t.tz_convert(tz)
+
+
+def day_type(ts: pd.Timestamp | datetime, cfg: dict | None = None) -> str:
+    py = _local(ts, cfg).to_pydatetime()
     if is_chile_holiday(py) and py.weekday() < 5:
         return "holiday"
     if py.weekday() >= 5:
@@ -87,11 +79,7 @@ def day_type(ts: pd.Timestamp | datetime, cfg: dict | None = None) -> str:
 
 
 def _hour(ts: pd.Timestamp | datetime, cfg: dict | None = None) -> int:
-    tz = _tz(cfg)
-    t = pd.Timestamp(ts)
-    if t.tzinfo is None:
-        return int(t.hour)
-    return int(t.tz_convert(tz).hour)
+    return int(_local(ts, cfg).hour)
 
 
 def _stats(values: list[float], min_samples: int = 3) -> dict[str, float] | None:
@@ -167,7 +155,6 @@ def _value_for(pattern: dict[str, Any], dtype: str, hour: int) -> dict[str, Any]
     key = f"{hour:02d}"
     if dtype == "weekday":
         return (p.get("weekday") or {}).get(key)
-    # feriados usan patron weekend si no hay suficiente muestra de feriado
     return (p.get(dtype) or {}).get(key) or (p.get("weekend") or {}).get(key) or (p.get("weekday") or {}).get(key)
 
 
@@ -175,11 +162,20 @@ def _ms(ts: pd.Timestamp) -> int:
     return int(ts.timestamp() * 1000)
 
 
+def _plot_start_end(df: pd.DataFrame, cfg: dict | None = None) -> tuple[pd.Timestamp, pd.Timestamp]:
+    raw_start = pd.Timestamp(df["time_local"].min())
+    raw_end = pd.Timestamp(df["time_local"].max())
+    # Si time_local viene sin timezone, se mantiene sin timezone para que la banda use
+    # el mismo eje que la serie real y cambie visualmente justo a las 00:00 del HMI.
+    if raw_start.tzinfo is None:
+        return raw_start.floor("h"), raw_end.floor("h") + pd.Timedelta(hours=1)
+    return raw_start.tz_convert(_tz(cfg)).floor("h"), raw_end.tz_convert(_tz(cfg)).floor("h") + pd.Timedelta(hours=1)
+
+
 def build_step_overlay(point: str, df: pd.DataFrame, cfg: dict | None = None) -> dict[str, Any] | None:
     cfg = cfg or {}
     pat = load_step_pattern(point, cfg)
     if pat is None:
-        # primer uso: genera cache con el rango disponible para no dejar la pantalla sin banda
         try:
             save_step_pattern(df, point, cfg)
             pat = load_step_pattern(point, cfg)
@@ -187,24 +183,12 @@ def build_step_overlay(point: str, df: pd.DataFrame, cfg: dict | None = None) ->
             pat = None
     if pat is None or df.empty or "time_local" not in df.columns:
         return None
-    tz = _tz(cfg)
-    start = pd.Timestamp(df["time_local"].min())
-    end = pd.Timestamp(df["time_local"].max())
-    if start.tzinfo is None:
-        start = start.tz_localize(tz)
-    else:
-        start = start.tz_convert(tz)
-    if end.tzinfo is None:
-        end = end.tz_localize(tz)
-    else:
-        end = end.tz_convert(tz)
-    cur = start.floor("h")
-    end = end.floor("h") + pd.Timedelta(hours=1)
+    cur, end = _plot_start_end(df, cfg)
     rows = {"weekday": [], "weekend": [], "holiday": []}
     prev_key: str | None = None
     while cur <= end:
         dtype = day_type(cur, cfg)
-        st = _value_for(pat, dtype, int(cur.hour))
+        st = _value_for(pat, dtype, _hour(cur, cfg))
         if st:
             if prev_key and prev_key != dtype and rows[prev_key]:
                 rows[prev_key].append([_ms(cur), None, None])
