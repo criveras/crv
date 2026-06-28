@@ -17,7 +17,7 @@ from flask import Flask, jsonify, request
 from analyze import DEFAULT_CONFIG, load_config, prepare_dataset
 from variable_profiles import get_profile
 
-APP2_VERSION = "app2-v2026.06.28-005"
+APP2_VERSION = "app2-v2026.06.28-006"
 TZ_NAME = "America/Santiago"
 TZ = ZoneInfo(TZ_NAME)
 DEFAULT_PATTERN_FINI = "*-365d"
@@ -105,8 +105,8 @@ def sigma_limits(vals: list[float]) -> dict[str, float] | None:
         "sigma": round(sigma, 6),
         "ll3": round(p50 - 3 * sigma, 3),
         "hh3": round(p50 + 3 * sigma, 3),
-        "ll4": round(p50 - 4 * sigma, 3),
-        "hh4": round(p50 + 4 * sigma, 3),
+        "ll10": round(p50 - 10 * sigma, 3),
+        "hh10": round(p50 + 10 * sigma, 3),
         "n": len(clean),
     }
 
@@ -169,6 +169,7 @@ def close_segment(segments: dict[str, list[list[list[float]]]], kind: str | None
 
 
 def learn_hourly_limits(pattern_df: pd.DataFrame) -> dict[tuple[str, int], dict[str, float]]:
+    """Aprende solo dos plantillas diarias: lunes-viernes y sabado/domingo/feriado."""
     src = pattern_df.dropna(subset=["time_local", "value"]).copy()
     if src.empty:
         return {}
@@ -192,21 +193,22 @@ def learn_hourly_limits(pattern_df: pd.DataFrame) -> dict[tuple[str, int], dict[
 
 
 def build_hourly_steps(pattern_df: pd.DataFrame, visible_df: pd.DataFrame) -> dict[str, Any]:
+    """Repite el patron diario aprendido sobre cada dia visible, sin recalcularlo por tramo."""
     visible = visible_df.dropna(subset=["time_local", "value"]).copy()
     if visible.empty:
         empty = {"weekday": [], "weekend": [], "holiday": []}
-        return {"segments3": empty, "segments4": empty, "bands": [], "midnight_lines": [], "styles": KIND_STYLE}
+        return {"segments3": empty, "segments10": empty, "bands": [], "midnight_lines": [], "styles": KIND_STYLE}
 
     limits = learn_hourly_limits(pattern_df)
-    start = visible["time_local"].map(as_cl).min().floor("h")
-    end = visible["time_local"].map(as_cl).max().floor("h") + pd.Timedelta(hours=1)
+    start = visible["time_local"].map(as_cl).min().floor("D")
+    end = visible["time_local"].map(as_cl).max().ceil("D")
 
     segments3: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
-    segments4: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
+    segments10: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
     bands: list[dict[str, Any]] = []
     cur_kind: str | None = None
     cur_points3: list[list[float]] = []
-    cur_points4: list[list[float]] = []
+    cur_points10: list[list[float]] = []
     prev_x: int | None = None
     prev_lim: dict[str, float] | None = None
     prev_kind: str | None = None
@@ -218,10 +220,10 @@ def build_hourly_steps(pattern_df: pd.DataFrame, visible_df: pd.DataFrame) -> di
         lim = limits.get((mkind, int(cur.hour)))
         if not lim:
             close_segment(segments3, cur_kind, cur_points3)
-            close_segment(segments4, cur_kind, cur_points4)
+            close_segment(segments10, cur_kind, cur_points10)
             cur_kind = None
             cur_points3 = []
-            cur_points4 = []
+            cur_points10 = []
             prev_x = None
             prev_lim = None
             prev_kind = None
@@ -231,21 +233,21 @@ def build_hourly_steps(pattern_df: pd.DataFrame, visible_df: pd.DataFrame) -> di
         x = ts_ms(cur)
         if cur_kind != vkind:
             close_segment(segments3, cur_kind, cur_points3)
-            close_segment(segments4, cur_kind, cur_points4)
+            close_segment(segments10, cur_kind, cur_points10)
             cur_kind = vkind
             cur_points3 = []
-            cur_points4 = []
+            cur_points10 = []
             prev_x = None
             prev_lim = None
             prev_kind = None
 
         cur_points3.append([x, lim["ll3"], lim["hh3"]])
-        cur_points4.append([x, lim["ll4"], lim["hh4"]])
+        cur_points10.append([x, lim["ll10"], lim["hh10"]])
         if prev_x is not None and prev_lim is not None and prev_kind == vkind:
             style = KIND_STYLE[vkind]
             bands.append({
                 "from": prev_x, "to": x, "ll3": prev_lim["ll3"], "hh3": prev_lim["hh3"],
-                "ll4": prev_lim["ll4"], "hh4": prev_lim["hh4"], "kind": vkind,
+                "ll10": prev_lim["ll10"], "hh10": prev_lim["hh10"], "kind": vkind,
                 "name": style["name"], "color": style["color"],
             })
 
@@ -253,8 +255,8 @@ def build_hourly_steps(pattern_df: pd.DataFrame, visible_df: pd.DataFrame) -> di
         cur += pd.Timedelta(hours=1)
 
     close_segment(segments3, cur_kind, cur_points3)
-    close_segment(segments4, cur_kind, cur_points4)
-    return {"segments3": segments3, "segments4": segments4, "bands": bands, "midnight_lines": build_midnight_lines(start, end), "styles": KIND_STYLE}
+    close_segment(segments10, cur_kind, cur_points10)
+    return {"segments3": segments3, "segments10": segments10, "bands": bands, "midnight_lines": build_midnight_lines(start, end), "styles": KIND_STYLE}
 
 
 def detect_three_point_alerts(real_df: pd.DataFrame, limits: dict[tuple[str, int], dict[str, float]], min_v: float, max_v: float | None) -> list[list[float]]:
@@ -304,6 +306,8 @@ def index():
     .ver {{ font-size:12px; color:#d0d0d0; background:#333; border:1px solid #555; border-radius:999px; padding:5px 9px; }}
     .bar {{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }}
     select,input,button {{ background:var(--panel); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:8px 10px; }}
+    .point-wrap {{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }}
+    #point_search {{ min-width:360px; }}
     select {{ min-width:360px; }}
     button {{ cursor:pointer; }}
     button:hover {{ background:#3a3a3a; }}
@@ -316,9 +320,12 @@ def index():
 </head>
 <body>
 <div class="app">
-  <div class="head"><h1>App2 - Real visible + patron historico LL/HH horario</h1><span class="ver">{APP2_VERSION}</span></div>
+  <div class="head"><h1>App2 - Real visible + patron diario repetido LL/HH horario</h1><span class="ver">{APP2_VERSION}</span></div>
   <div class="bar">
-    <select id="point"></select>
+    <div class="point-wrap">
+      <input id="point_search" placeholder="Buscar point..." autocomplete="off" title="Escribe para filtrar los points">
+      <select id="point" title="Point filtrado"></select>
+    </div>
     <label>Real <input id="fini" value="*-14d" style="width:90px"></label>
     <label>Patron <input id="pattern_fini" value="{DEFAULT_PATTERN_FINI}" style="width:90px"></label>
     <label>MA <input id="ma" type="number" value="5" style="width:70px"></label>
@@ -326,13 +333,14 @@ def index():
   </div>
   <div id="status">Inicializando...</div>
   <div id="chart"></div>
-  <p class="small">Entrenamiento limpio: presión 0..100, caudal 0..500, otros >=0. <span class="legend-chip" style="background:#00bcd4"></span>3σ <span class="legend-chip" style="background:#ff1744"></span>4σ alerta. Punto rojo = 3 puntos consecutivos fuera de 3σ.</p>
+  <p class="small">Patron diario fijo: lunes-viernes y sabado/domingo/feriado. Entrenamiento limpio: presión 0..100, caudal 0..500, otros >=0. <span class="legend-chip" style="background:#00bcd4"></span>3σ <span class="legend-chip" style="background:#ff1744"></span>10σ extremo. Punto rojo = 3 puntos consecutivos fuera de 3σ.</p>
 </div>
 <script>
 const APP2_VERSION = {APP2_VERSION!r};
 const initialPoint = {point!r};
 let chart = null;
 let chartSeq = 0;
+let allPoints = [];
 const $ = id => document.getElementById(id);
 Highcharts.setOptions({{ time: {{ timezone: 'America/Santiago', useUTC: false }} }});
 function fmt(v,d=2) {{ return v == null || Number.isNaN(Number(v)) ? '—' : Number(v).toFixed(d); }}
@@ -342,31 +350,49 @@ function make3SigmaSeries(segments, styles) {{
   ['weekday','weekend','holiday'].forEach(kind=>{{ const st=styles[kind]; (segments[kind]||[]).forEach((seg,idx)=>{{ if(!seg||seg.length<2)return; out.push({{name:st.name+(idx?' '+(idx+1):''),type:'arearange',step:'left',data:seg,color:st.color,lineColor:st.color,fillColor:st.fill,fillOpacity:.10,lineWidth:1,marker:{{enabled:false}},enableMouseTracking:false,linkedTo:idx?':previous':undefined,showInLegend:idx===0,zIndex:3}}); }}); }});
   return out;
 }}
-function make4SigmaSeries(segments) {{
+function make10SigmaSeries(segments) {{
   const out=[]; let shownBand=false,shownLL=false,shownHH=false;
-  ['weekday','weekend','holiday'].forEach(kind=>{{ (segments[kind]||[]).forEach(seg=>{{ if(!seg||seg.length<2)return; out.push({{name:'ALERTA 4σ zona',type:'arearange',step:'left',data:seg,color:'#ff1744',lineColor:'#ff1744',fillColor:'rgba(255,23,68,.045)',fillOpacity:.045,dashStyle:'ShortDash',lineWidth:1,marker:{{enabled:false}},enableMouseTracking:false,showInLegend:!shownBand,linkedTo:shownBand?':previous':undefined,zIndex:1}}); shownBand=true; const ll=seg.map(p=>[p[0],p[1]]),hh=seg.map(p=>[p[0],p[2]]); out.push({{name:'LL 4σ alerta',type:'line',step:'left',data:ll,color:'#ff1744',dashStyle:'ShortDash',lineWidth:1.2,marker:{{enabled:false}},enableMouseTracking:false,showInLegend:!shownLL,linkedTo:shownLL?':previous':undefined,zIndex:4}}); out.push({{name:'HH 4σ alerta',type:'line',step:'left',data:hh,color:'#ff1744',dashStyle:'ShortDash',lineWidth:1.2,marker:{{enabled:false}},enableMouseTracking:false,showInLegend:!shownHH,linkedTo:shownHH?':previous':undefined,zIndex:4}}); shownLL=true; shownHH=true; }}); }});
+  ['weekday','weekend','holiday'].forEach(kind=>{{ (segments[kind]||[]).forEach(seg=>{{ if(!seg||seg.length<2)return; out.push({{name:'EXTREMO 10σ zona',type:'arearange',step:'left',data:seg,color:'#ff1744',lineColor:'#ff1744',fillColor:'rgba(255,23,68,.025)',fillOpacity:.025,dashStyle:'ShortDash',lineWidth:1,marker:{{enabled:false}},enableMouseTracking:false,showInLegend:!shownBand,linkedTo:shownBand?':previous':undefined,zIndex:1}}); shownBand=true; const ll=seg.map(p=>[p[0],p[1]]),hh=seg.map(p=>[p[0],p[2]]); out.push({{name:'LL 10σ extremo',type:'line',step:'left',data:ll,color:'#ff1744',dashStyle:'ShortDash',lineWidth:1.2,marker:{{enabled:false}},enableMouseTracking:false,showInLegend:!shownLL,linkedTo:shownLL?':previous':undefined,zIndex:4}}); out.push({{name:'HH 10σ extremo',type:'line',step:'left',data:hh,color:'#ff1744',dashStyle:'ShortDash',lineWidth:1.2,marker:{{enabled:false}},enableMouseTracking:false,showInLegend:!shownHH,linkedTo:shownHH?':previous':undefined,zIndex:4}}); shownLL=true; shownHH=true; }}); }});
   return out;
 }}
+function renderPointOptions(filterText='') {{
+  const sel=$('point');
+  const needle=String(filterText||'').trim().toLowerCase();
+  const current=sel.value||initialPoint;
+  const filtered=allPoints.filter(p=>!needle || p.tag.toLowerCase().includes(needle) || p.label.toLowerCase().includes(needle)).slice(0,500);
+  sel.innerHTML='';
+  filtered.forEach(p=>{{ const o=document.createElement('option'); o.value=p.tag; o.textContent=p.label; sel.appendChild(o); }});
+  if ([...sel.options].some(o=>o.value===current)) sel.value=current;
+  else if ([...sel.options].some(o=>o.value===initialPoint)) sel.value=initialPoint;
+  else if (sel.options.length) sel.selectedIndex=0;
+  $('status').textContent = allPoints.length ? 'Points: '+filtered.length+'/'+allPoints.length : 'Sin points';
+}}
 async function loadPoints() {{
-  const r=await fetch('/api/points2'); const data=await r.json(); const sel=$('point'); sel.innerHTML='';
-  (data.points||[]).forEach(p=>{{ const o=document.createElement('option'); o.value=p.tag; o.textContent=p.label; sel.appendChild(o); }});
-  if ([...sel.options].some(o=>o.value===initialPoint)) sel.value=initialPoint;
+  const r=await fetch('/api/points2'); const data=await r.json();
+  allPoints=data.points||[];
+  renderPointOptions('');
+  if ([...$('point').options].some(o=>o.value===initialPoint)) $('point').value=initialPoint;
+  const init=allPoints.find(p=>p.tag===$('point').value);
+  if (init) $('point_search').value=init.label;
 }}
 async function loadChart() {{
   const p=$('point').value||initialPoint;
   const qs=new URLSearchParams({{point:p,fini:$('fini').value,pattern_fini:$('pattern_fini').value,ma:$('ma').value}});
   $('status').textContent='Cargando '+p+'...';
   const r=await fetch('/api/chart2?'+qs.toString()); const data=await r.json(); if(!r.ok)throw new Error(data.error||r.statusText);
-  $('status').textContent=`${{APP2_VERSION}} · ${{data.point}} · real ${{data.count}} pts · patrón limpio ${{data.pattern_count}}/${{data.pattern_raw_count}} pts · ${{data.filter}} · alertas ${{(data.alert_points||[]).length}} · ${{data.unit}} · ${{data.tz}}`;
+  $('status').textContent=APP2_VERSION+' · '+data.point+' · real '+data.count+' pts · patrón limpio '+data.pattern_count+'/'+data.pattern_raw_count+' pts · '+data.filter+' · alertas '+(data.alert_points||[]).length+' · '+data.unit+' · '+data.tz;
   const holder=$('chart'); const innerId='chart_inner_'+(++chartSeq); holder.innerHTML='<div id="'+innerId+'" class="chart-inner"></div>';
   const bands=data.steps.bands||[];
-  const series=make4SigmaSeries(data.steps.segments4||{{}}).concat(make3SigmaSeries(data.steps.segments3||{{}},data.steps.styles||{{}})).concat([
+  const series=make10SigmaSeries(data.steps.segments10||{{}}).concat(make3SigmaSeries(data.steps.segments3||{{}},data.steps.styles||{{}})).concat([
     {{name:'Valor real',type:'line',data:data.series,color:'#ffffff',lineWidth:2,marker:{{enabled:false}},zIndex:7,tooltip:{{valueDecimals:3,valueSuffix:' '+data.unit}}}},
     {{name:'Alerta 3 puntos fuera 3σ',type:'scatter',data:data.alert_points||[],color:'#ff1744',marker:{{enabled:true,radius:4,symbol:'circle',lineColor:'#fff',lineWidth:1}},zIndex:10}}
   ]);
-  chart=Highcharts.stockChart(innerId,{{chart:{{backgroundColor:'#252525',zoomType:'x',panning:{{enabled:true,type:'x'}},panKey:'shift'}},accessibility:{{enabled:false}},rangeSelector:{{enabled:false}},navigator:{{enabled:true,maskFill:'rgba(180,180,180,.15)',series:{{color:'#666',lineColor:'#888'}}}},credits:{{enabled:false}},title:{{text:null}},xAxis:{{type:'datetime',plotLines:data.steps.midnight_lines||[],labels:{{style:{{color:'#aaa'}}}},lineColor:'#555',tickColor:'#555'}},yAxis:{{title:{{text:data.unit,style:{{color:'#aaa'}}}},labels:{{style:{{color:'#aaa'}}}},gridLineColor:'#3a3a3a'}},legend:{{enabled:true,itemStyle:{{color:'#eee'}}}},tooltip:{{shared:false,useHTML:true,backgroundColor:'rgba(30,30,30,.96)',borderColor:'#666',style:{{color:'#eee'}},formatter:function(){{const x=this.x||(this.point&&this.point.x);let html='<b>'+Highcharts.dateFormat('%Y-%m-%d %H:%M',x)+'</b><br>';html+='<span style="color:'+this.series.color+'">●</span> '+this.series.name+': <b>'+fmt(this.y,3)+'</b> '+data.unit;const b=bandAt(bands,x);if(b)html+='<br><span style="color:'+b.color+'">●</span> 3σ: <b>LL '+fmt(b.ll3)+' / HH '+fmt(b.hh3)+'</b><br><span style="color:#ff1744">●</span> 4σ alerta: <b>LL '+fmt(b.ll4)+' / HH '+fmt(b.hh4)+'</b>';return html;}}}},plotOptions:{{series:{{animation:false,states:{{inactive:{{opacity:1}}}}}},arearange:{{lineWidth:1,marker:{{enabled:false}},enableMouseTracking:false}}}},series:series}});
+  chart=Highcharts.stockChart(innerId,{{chart:{{backgroundColor:'#252525',zoomType:'x',panning:{{enabled:true,type:'x'}},panKey:'shift'}},accessibility:{{enabled:false}},rangeSelector:{{enabled:false}},navigator:{{enabled:true,maskFill:'rgba(180,180,180,.15)',series:{{color:'#666',lineColor:'#888'}}}},credits:{{enabled:false}},title:{{text:null}},xAxis:{{type:'datetime',plotLines:data.steps.midnight_lines||[],labels:{{style:{{color:'#aaa'}}}},lineColor:'#555',tickColor:'#555'}},yAxis:{{title:{{text:data.unit,style:{{color:'#aaa'}}}},labels:{{style:{{color:'#aaa'}}}},gridLineColor:'#3a3a3a'}},legend:{{enabled:true,itemStyle:{{color:'#eee'}}}},tooltip:{{shared:false,useHTML:true,backgroundColor:'rgba(30,30,30,.96)',borderColor:'#666',style:{{color:'#eee'}},formatter:function(){{const x=this.x||(this.point&&this.point.x);let html='<b>'+Highcharts.dateFormat('%Y-%m-%d %H:%M',x)+'</b><br>';html+='<span style="color:'+this.series.color+'">●</span> '+this.series.name+': <b>'+fmt(this.y,3)+'</b> '+data.unit;const b=bandAt(bands,x);if(b)html+='<br><span style="color:'+b.color+'">●</span> 3σ: <b>LL '+fmt(b.ll3)+' / HH '+fmt(b.hh3)+'</b><br><span style="color:#ff1744">●</span> 10σ extremo: <b>LL '+fmt(b.ll10)+' / HH '+fmt(b.hh10)+'</b>';return html;}}}},plotOptions:{{series:{{animation:false,states:{{inactive:{{opacity:1}}}}}},arearange:{{lineWidth:1,marker:{{enabled:false}},enableMouseTracking:false}}}},series:series}});
 }}
 $('load').addEventListener('click',()=>loadChart().catch(e=>$('status').textContent='ERROR: '+e.message));
+$('point_search').addEventListener('input',e=>renderPointOptions(e.target.value));
+$('point_search').addEventListener('keydown',e=>{{ if(e.key==='Enter') loadChart().catch(err=>$('status').textContent='ERROR: '+err.message); }});
+$('point').addEventListener('change',()=>{{ const p=allPoints.find(x=>x.tag===$('point').value); if(p) $('point_search').value=p.label; }});
 loadPoints().then(loadChart).catch(e=>$('status').textContent='ERROR: '+e.message);
 </script>
 </body>
