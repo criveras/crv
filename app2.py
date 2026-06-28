@@ -17,7 +17,7 @@ from flask import Flask, jsonify, request
 from analyze import DEFAULT_CONFIG, load_config, prepare_dataset
 from variable_profiles import get_profile
 
-APP2_VERSION = "app2-v2026.06.28-003"
+APP2_VERSION = "app2-v2026.06.28-004"
 TZ_NAME = "America/Santiago"
 TZ = ZoneInfo(TZ_NAME)
 DEFAULT_PATTERN_FINI = "*-365d"
@@ -30,9 +30,9 @@ TIMEOUT = int(os.environ.get("RT3_API_TIMEOUT", "120"))
 app = Flask(__name__)
 
 KIND_STYLE = {
-    "weekday": {"name": "LL/HH patron lunes-viernes", "color": "#00bcd4", "fill": "rgba(0,188,212,.10)"},
-    "weekend": {"name": "LL/HH patron sabado-domingo", "color": "#e040fb", "fill": "rgba(224,64,251,.10)"},
-    "holiday": {"name": "LL/HH feriado Chile usando patron sab-dom", "color": "#ff1744", "fill": "rgba(255,23,68,.12)"},
+    "weekday": {"name": "LL/HH 3σ patron lunes-viernes", "color": "#00bcd4", "fill": "rgba(0,188,212,.10)"},
+    "weekend": {"name": "LL/HH 3σ patron sabado-domingo", "color": "#e040fb", "fill": "rgba(224,64,251,.10)"},
+    "holiday": {"name": "LL/HH 3σ feriado Chile usando patron sab-dom", "color": "#ff1744", "fill": "rgba(255,23,68,.12)"},
 }
 
 
@@ -68,7 +68,7 @@ def pct(vals: list[float], q: float) -> float:
     return float(s.quantile(q))
 
 
-def sigma3_limits(vals: list[float]) -> tuple[float, float] | None:
+def sigma_limits(vals: list[float]) -> dict[str, float] | None:
     clean = [float(v) for v in vals if v is not None and math.isfinite(float(v))]
     if len(clean) < 3:
         return None
@@ -78,7 +78,15 @@ def sigma3_limits(vals: list[float]) -> tuple[float, float] | None:
     sigma = (p90 - p10) / 2.563
     if not math.isfinite(sigma) or sigma <= 0:
         sigma = max(abs(p50) * 0.01, 0.01)
-    return round(p50 - 3 * sigma, 3), round(p50 + 3 * sigma, 3)
+    return {
+        "p50": round(p50, 3),
+        "sigma": round(sigma, 6),
+        "ll3": round(p50 - 3 * sigma, 3),
+        "hh3": round(p50 + 3 * sigma, 3),
+        "ll4": round(p50 - 4 * sigma, 3),
+        "hh4": round(p50 + 4 * sigma, 3),
+        "n": len(clean),
+    }
 
 
 def easter_date(year: int) -> datetime:
@@ -139,7 +147,7 @@ def close_segment(segments: dict[str, list[list[list[float]]]], kind: str | None
         segments[kind].append(points[:])
 
 
-def learn_hourly_limits(pattern_df: pd.DataFrame) -> dict[tuple[str, int], tuple[float, float]]:
+def learn_hourly_limits(pattern_df: pd.DataFrame) -> dict[tuple[str, int], dict[str, float]]:
     src = pattern_df.dropna(subset=["time_local", "value"]).copy()
     if src.empty:
         return {}
@@ -148,9 +156,9 @@ def learn_hourly_limits(pattern_df: pd.DataFrame) -> dict[tuple[str, int], tuple
     src["visual_kind"] = src["time_cl"].map(day_kind)
     src["model_kind"] = src["visual_kind"].map(model_kind)
 
-    limits: dict[tuple[str, int], tuple[float, float]] = {}
+    limits: dict[tuple[str, int], dict[str, float]] = {}
     for (mkind, hour), group in src.groupby(["model_kind", "hour_cl"]):
-        lim = sigma3_limits(group["value"].astype(float).tolist())
+        lim = sigma_limits(group["value"].astype(float).tolist())
         if lim:
             limits[(str(mkind), int(hour))] = lim
 
@@ -165,19 +173,21 @@ def learn_hourly_limits(pattern_df: pd.DataFrame) -> dict[tuple[str, int], tuple
 def build_hourly_steps(pattern_df: pd.DataFrame, visible_df: pd.DataFrame) -> dict[str, Any]:
     visible = visible_df.dropna(subset=["time_local", "value"]).copy()
     if visible.empty:
-        return {"segments": {"weekday": [], "weekend": [], "holiday": []}, "bands": [], "midnight_lines": [], "styles": KIND_STYLE}
+        empty = {"weekday": [], "weekend": [], "holiday": []}
+        return {"segments3": empty, "segments4": empty, "bands": [], "midnight_lines": [], "styles": KIND_STYLE}
 
     limits = learn_hourly_limits(pattern_df)
     start = visible["time_local"].map(as_cl).min().floor("h")
     end = visible["time_local"].map(as_cl).max().floor("h") + pd.Timedelta(hours=1)
 
-    segments: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
+    segments3: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
+    segments4: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
     bands: list[dict[str, Any]] = []
     cur_kind: str | None = None
-    cur_points: list[list[float]] = []
+    cur_points3: list[list[float]] = []
+    cur_points4: list[list[float]] = []
     prev_x: int | None = None
-    prev_lo: float | None = None
-    prev_hi: float | None = None
+    prev_lim: dict[str, float] | None = None
     prev_kind: str | None = None
 
     cur = start
@@ -186,31 +196,75 @@ def build_hourly_steps(pattern_df: pd.DataFrame, visible_df: pd.DataFrame) -> di
         mkind = model_kind(vkind)
         lim = limits.get((mkind, int(cur.hour)))
         if not lim:
-            close_segment(segments, cur_kind, cur_points)
+            close_segment(segments3, cur_kind, cur_points3)
+            close_segment(segments4, cur_kind, cur_points4)
             cur_kind = None
-            cur_points = []
-            prev_x = prev_lo = prev_hi = prev_kind = None
+            cur_points3 = []
+            cur_points4 = []
+            prev_x = None
+            prev_lim = None
+            prev_kind = None
             cur += pd.Timedelta(hours=1)
             continue
 
         x = ts_ms(cur)
-        lo, hi = lim
         if cur_kind != vkind:
-            close_segment(segments, cur_kind, cur_points)
+            close_segment(segments3, cur_kind, cur_points3)
+            close_segment(segments4, cur_kind, cur_points4)
             cur_kind = vkind
-            cur_points = []
-            prev_x = prev_lo = prev_hi = prev_kind = None
+            cur_points3 = []
+            cur_points4 = []
+            prev_x = None
+            prev_lim = None
+            prev_kind = None
 
-        cur_points.append([x, lo, hi])
-        if prev_x is not None and prev_lo is not None and prev_hi is not None and prev_kind == vkind:
+        cur_points3.append([x, lim["ll3"], lim["hh3"]])
+        cur_points4.append([x, lim["ll4"], lim["hh4"]])
+        if prev_x is not None and prev_lim is not None and prev_kind == vkind:
             style = KIND_STYLE[vkind]
-            bands.append({"from": prev_x, "to": x, "ll": prev_lo, "hh": prev_hi, "kind": vkind, "name": style["name"], "color": style["color"]})
+            bands.append({
+                "from": prev_x,
+                "to": x,
+                "ll3": prev_lim["ll3"],
+                "hh3": prev_lim["hh3"],
+                "ll4": prev_lim["ll4"],
+                "hh4": prev_lim["hh4"],
+                "kind": vkind,
+                "name": style["name"],
+                "color": style["color"],
+            })
 
-        prev_x, prev_lo, prev_hi, prev_kind = x, lo, hi, vkind
+        prev_x, prev_lim, prev_kind = x, lim, vkind
         cur += pd.Timedelta(hours=1)
 
-    close_segment(segments, cur_kind, cur_points)
-    return {"segments": segments, "bands": bands, "midnight_lines": build_midnight_lines(start, end), "styles": KIND_STYLE}
+    close_segment(segments3, cur_kind, cur_points3)
+    close_segment(segments4, cur_kind, cur_points4)
+    return {"segments3": segments3, "segments4": segments4, "bands": bands, "midnight_lines": build_midnight_lines(start, end), "styles": KIND_STYLE}
+
+
+def detect_three_point_alerts(real_df: pd.DataFrame, limits: dict[tuple[str, int], dict[str, float]]) -> list[list[float]]:
+    clean = real_df.dropna(subset=["time_local", "value"]).copy()
+    if clean.empty:
+        return []
+    clean["time_cl"] = clean["time_local"].map(as_cl)
+    clean = clean.sort_values("time_cl")
+    out: list[list[float]] = []
+    streak = 0
+    for row in clean.itertuples():
+        t = as_cl(row.time_local)
+        val = float(row.value)
+        kind = model_kind(day_kind(t))
+        lim = limits.get((kind, int(t.hour)))
+        outside3 = False
+        if lim and math.isfinite(val):
+            outside3 = val < lim["ll3"] or val > lim["hh3"]
+        if outside3:
+            streak += 1
+            if streak >= 3:
+                out.append([ts_ms(t), round(val, 3)])
+        else:
+            streak = 0
+    return out
 
 
 @app.route("/")
@@ -239,29 +293,31 @@ def index():
     button {{ cursor:pointer; }}
     button:hover {{ background:#3a3a3a; }}
     #status {{ color:var(--muted); margin:8px 0; min-height:18px; }}
-    #chart {{ height:620px; border:1px solid var(--border); border-radius:8px; background:#252525; }}
+    #chart {{ height:620px; border:1px solid var(--border); border-radius:8px; background:#252525; overflow:hidden; }}
+    .chart-inner {{ height:620px; width:100%; }}
     .small {{ font-size:12px; color:var(--muted); }}
     .legend-chip {{ display:inline-block; width:10px; height:10px; border-radius:2px; margin:0 4px 0 12px; }}
   </style>
 </head>
 <body>
 <div class="app">
-  <div class="head"><h1>App2 - Real visible + patrón histórico LL/HH horario</h1><span class="ver">{APP2_VERSION}</span></div>
+  <div class="head"><h1>App2 - Real visible + patron historico LL/HH horario</h1><span class="ver">{APP2_VERSION}</span></div>
   <div class="bar">
     <select id="point"></select>
     <label>Real <input id="fini" value="*-14d" style="width:90px"></label>
-    <label>Patrón <input id="pattern_fini" value="{DEFAULT_PATTERN_FINI}" style="width:90px"></label>
+    <label>Patron <input id="pattern_fini" value="{DEFAULT_PATTERN_FINI}" style="width:90px"></label>
     <label>MA <input id="ma" type="number" value="5" style="width:70px"></label>
     <button id="load">Cargar</button>
   </div>
   <div id="status">Inicializando...</div>
   <div id="chart"></div>
-  <p class="small">Hora Chile. <span class="legend-chip" style="background:#00bcd4"></span>lunes-viernes histórico <span class="legend-chip" style="background:#e040fb"></span>sábado/domingo histórico <span class="legend-chip" style="background:#ff1744"></span>feriado Chile usando patrón sábado/domingo. Línea vertical gris = 00:00.</p>
+  <p class="small">Hora Chile. <span class="legend-chip" style="background:#00bcd4"></span>3σ lunes-viernes <span class="legend-chip" style="background:#e040fb"></span>3σ sab/dom <span class="legend-chip" style="background:#ff1744"></span>4σ alerta y feriado. Punto rojo = 3 puntos consecutivos fuera de 3σ.</p>
 </div>
 <script>
 const APP2_VERSION = {APP2_VERSION!r};
 const initialPoint = {point!r};
 let chart = null;
+let chartSeq = 0;
 const $ = id => document.getElementById(id);
 Highcharts.setOptions({{ time: {{ timezone: 'America/Santiago', useUTC: false }} }});
 function fmt(v,d=2) {{ return v == null || Number.isNaN(Number(v)) ? '—' : Number(v).toFixed(d); }}
@@ -272,7 +328,7 @@ function bandAt(bands, x) {{
   }}
   return null;
 }}
-function makeBandSeries(segments, styles) {{
+function make3SigmaSeries(segments, styles) {{
   const out = [];
   ['weekday','weekend','holiday'].forEach(kind => {{
     const st = styles[kind];
@@ -280,20 +336,32 @@ function makeBandSeries(segments, styles) {{
       if (!seg || seg.length < 2) return;
       out.push({{
         name: st.name + (idx ? ' ' + (idx+1) : ''),
-        type: 'arearange',
-        step: 'left',
-        data: seg,
-        color: st.color,
-        lineColor: st.color,
-        fillColor: st.fill,
-        fillOpacity: .10,
-        lineWidth: 1,
-        marker: {{ enabled:false }},
-        enableMouseTracking: false,
-        linkedTo: idx ? ':previous' : undefined,
-        showInLegend: idx === 0,
-        zIndex: 2
+        type: 'arearange', step: 'left', data: seg,
+        color: st.color, lineColor: st.color, fillColor: st.fill, fillOpacity:.10,
+        lineWidth: 1, marker:{{enabled:false}}, enableMouseTracking:false,
+        linkedTo: idx ? ':previous' : undefined, showInLegend: idx === 0, zIndex: 3
       }});
+    }});
+  }});
+  return out;
+}}
+function make4SigmaSeries(segments) {{
+  const out = [];
+  let shownBand = false, shownLL = false, shownHH = false;
+  ['weekday','weekend','holiday'].forEach(kind => {{
+    (segments[kind] || []).forEach((seg, idx) => {{
+      if (!seg || seg.length < 2) return;
+      out.push({{
+        name:'ALERTA 4σ zona', type:'arearange', step:'left', data:seg,
+        color:'#ff1744', lineColor:'#ff1744', fillColor:'rgba(255,23,68,.045)', fillOpacity:.045,
+        dashStyle:'ShortDash', lineWidth:1, marker:{{enabled:false}}, enableMouseTracking:false,
+        showInLegend:!shownBand, linkedTo:shownBand?':previous':undefined, zIndex:1
+      }});
+      shownBand = true;
+      const ll = seg.map(p => [p[0], p[1]]), hh = seg.map(p => [p[0], p[2]]);
+      out.push({{name:'LL 4σ alerta', type:'line', step:'left', data:ll, color:'#ff1744', dashStyle:'ShortDash', lineWidth:1.2, marker:{{enabled:false}}, enableMouseTracking:false, showInLegend:!shownLL, linkedTo:shownLL?':previous':undefined, zIndex:4}});
+      out.push({{name:'HH 4σ alerta', type:'line', step:'left', data:hh, color:'#ff1744', dashStyle:'ShortDash', lineWidth:1.2, marker:{{enabled:false}}, enableMouseTracking:false, showInLegend:!shownHH, linkedTo:shownHH?':previous':undefined, zIndex:4}});
+      shownLL = true; shownHH = true;
     }});
   }});
   return out;
@@ -318,9 +386,17 @@ async function loadChart() {{
   const r = await fetch('/api/chart2?' + qs.toString());
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || r.statusText);
-  $('status').textContent = `${{APP2_VERSION}} · ${{data.point}} · real ${{data.count}} pts · patrón ${{data.pattern_count}} pts · ${{data.unit}} · ${{data.tz}}`;
+  $('status').textContent = `${{APP2_VERSION}} · ${{data.point}} · real ${{data.count}} pts · patron ${{data.pattern_count}} pts · alertas ${{(data.alert_points||[]).length}} · ${{data.unit}} · ${{data.tz}}`;
+  const holder = $('chart');
+  const innerId = 'chart_inner_' + (++chartSeq);
+  holder.innerHTML = '<div id="'+innerId+'" class="chart-inner"></div>';
   const bands = data.steps.bands || [];
-  const bandSeries = makeBandSeries(data.steps.segments || {{}}, data.steps.styles || {{}});
+  const series = make4SigmaSeries(data.steps.segments4 || {{}})
+    .concat(make3SigmaSeries(data.steps.segments3 || {{}}, data.steps.styles || {{}}))
+    .concat([
+      {{ name:'Valor real', type:'line', data:data.series, color:'#ffffff', lineWidth:2, marker:{{enabled:false}}, zIndex:7, tooltip:{{valueDecimals:3, valueSuffix:' '+data.unit}} }},
+      {{ name:'Alerta 3 puntos fuera 3σ', type:'scatter', data:data.alert_points || [], color:'#ff1744', marker:{{enabled:true, radius:4, symbol:'circle', lineColor:'#fff', lineWidth:1}}, zIndex:10, tooltip:{{pointFormatter:function(){{return '<span style="color:#ff1744">●</span> Alerta 3 puntos fuera 3σ: <b>'+fmt(this.y,3)+'</b> '+data.unit+'<br/>';}}}} }}
+    ]);
   const opts = {{
     chart: {{ backgroundColor:'#252525', zoomType:'x', panning:{{enabled:true,type:'x'}}, panKey:'shift' }},
     accessibility: {{ enabled:false }},
@@ -332,28 +408,20 @@ async function loadChart() {{
     yAxis: {{ title:{{text:data.unit, style:{{color:'#aaa'}}}}, labels:{{style:{{color:'#aaa'}}}}, gridLineColor:'#3a3a3a' }},
     legend: {{ enabled:true, itemStyle:{{color:'#eee'}} }},
     tooltip: {{
-      shared:false,
-      useHTML:true,
-      backgroundColor:'rgba(30,30,30,.96)',
-      borderColor:'#666',
-      style:{{color:'#eee'}},
+      shared:false, useHTML:true, backgroundColor:'rgba(30,30,30,.96)', borderColor:'#666', style:{{color:'#eee'}},
       formatter:function() {{
         const x = this.x || (this.point && this.point.x);
         let html = '<b>' + Highcharts.dateFormat('%Y-%m-%d %H:%M', x) + '</b><br>';
-        html += '<span style="color:#fff">●</span> Valor real: <b>' + fmt(this.y,3) + '</b> ' + data.unit;
+        html += '<span style="color:'+this.series.color+'">●</span> '+this.series.name+': <b>' + fmt(this.y,3) + '</b> ' + data.unit;
         const b = bandAt(bands, x);
-        if (b) html += '<br><span style="color:'+b.color+'">●</span> '+b.name+': <b>LL '+fmt(b.ll)+' / HH '+fmt(b.hh)+'</b>';
+        if (b) html += '<br><span style="color:'+b.color+'">●</span> 3σ: <b>LL '+fmt(b.ll3)+' / HH '+fmt(b.hh3)+'</b><br><span style="color:#ff1744">●</span> 4σ alerta: <b>LL '+fmt(b.ll4)+' / HH '+fmt(b.hh4)+'</b>';
         return html;
       }}
     }},
     plotOptions: {{ series:{{animation:false, states:{{inactive:{{opacity:1}}}}}}, arearange:{{lineWidth:1, marker:{{enabled:false}}, enableMouseTracking:false}} }},
-    series: bandSeries.concat([
-      {{ name:'Valor real', type:'line', data:data.series, color:'#ffffff', lineWidth:2, marker:{{enabled:false}}, zIndex:5, tooltip:{{valueDecimals:3, valueSuffix:' '+data.unit}} }}
-    ])
+    series: series
   }};
-  const old = chart;
-  chart = Highcharts.stockChart('chart', opts);
-  if (old) setTimeout(() => old.destroy(), 0);
+  chart = Highcharts.stockChart(innerId, opts);
 }}
 $('load').addEventListener('click', () => loadChart().catch(e => $('status').textContent = 'ERROR: ' + e.message));
 loadPoints().then(loadChart).catch(e => $('status').textContent = 'ERROR: ' + e.message);
@@ -407,9 +475,11 @@ def chart2():
         unit = prof.get("unit") or real_cfg.get("unit", "")
         clean = df_real.dropna(subset=["time_local", "value"])
         series = [[ts_ms(r.time_local), round(float(r.value), 3)] for r in clean.itertuples() if math.isfinite(float(r.value))]
+        limits = learn_hourly_limits(df_pattern)
         steps = build_hourly_steps(df_pattern, df_real)
+        alert_points = detect_three_point_alerts(df_real, limits)
         pattern_count = int(len(df_pattern.dropna(subset=["time_local", "value"])))
-        return jsonify({"version": APP2_VERSION, "tz": TZ_NAME, "point": point, "unit": unit, "count": len(series), "pattern_count": pattern_count, "fini": fini, "pattern_fini": pattern_fini, "series": series, "steps": steps})
+        return jsonify({"version": APP2_VERSION, "tz": TZ_NAME, "point": point, "unit": unit, "count": len(series), "pattern_count": pattern_count, "alert_points": alert_points, "fini": fini, "pattern_fini": pattern_fini, "series": series, "steps": steps})
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except requests.RequestException as exc:
