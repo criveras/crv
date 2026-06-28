@@ -12,23 +12,25 @@
       .topbar-actions { display: flex; align-items: center; gap: 10px; }
       .btn-theme { min-width: 104px; }
       body.theme-dark {
-        --bg: #1a1f2e; --bg2: #252b3d; --border: #3a4258; --text: #e8ecf4; --muted: #9aa3b8;
-        --accent: #6c9eff; --ok: #4caf82; --warn: #e6a23c; --alarm: #ef5350;
+        --bg: #1f1f1f; --bg2: #2b2b2b; --border: #444444; --text: #eeeeee; --muted: #b8b8b8;
+        --accent: #d0d0d0; --ok: #4caf82; --warn: #e6a23c; --alarm: #ef5350;
       }
+      body.theme-dark .title { color: #f0f0f0; }
       body.theme-dark .btn { background: var(--bg2); border-color: var(--border); color: var(--text); }
-      body.theme-dark .btn:hover { background: #2f3650; }
-      body.theme-dark .btn-primary { background: #2a4070; border-color: var(--accent); color: #fff; }
+      body.theme-dark .btn:hover { background: #383838; }
+      body.theme-dark .btn-primary { background: #444444; border-color: #8a8a8a; color: #fff; }
+      body.theme-dark .btn-primary:hover { background: #555555; }
       body.theme-dark .btn-z:hover,
-      body.theme-dark .btn-z.active { background: #2f3650; }
+      body.theme-dark .btn-z.active { background: #383838; border-color: #9a9a9a; color: #f0f0f0; }
       body.theme-dark .badge-ok { background: #1e3d32; color: var(--ok); }
       body.theme-dark .badge-vigilancia { background: #3d3520; color: var(--warn); }
       body.theme-dark .badge-pre_alarma { background: #4a3020; color: #ff9800; }
       body.theme-dark .badge-alarma { background: #4a2020; color: var(--alarm); }
       body.theme-dark .card,
       body.theme-dark .panel { box-shadow: none; }
-      body.theme-dark .risk-tag { background: #2f3650; border-color: var(--border); color: var(--muted); }
+      body.theme-dark .risk-tag { background: #383838; border-color: var(--border); color: var(--muted); }
       body.theme-dark .risk-tag.alarm { background: #4a2020; color: var(--alarm); border-color: #633030; }
-      body.theme-dark tr.clickable:hover { background: #2f3650; }
+      body.theme-dark tr.clickable:hover { background: #383838; }
       body.theme-dark .modal-backdrop { background: rgba(0, 0, 0, 0.65); }
       body.theme-dark .modal-box { box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); }
       body.theme-dark .chart { background: #252525; }
