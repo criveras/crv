@@ -3,6 +3,7 @@ set -e
 
 APP_DIR="/home/criveras/app/crv"
 BRANCH="main"
+REMOTE="origin"
 
 echo "===================================="
 echo " Actualizando CRV"
@@ -11,7 +12,7 @@ echo "===================================="
 cd "$APP_DIR"
 
 echo ""
-echo "1) Eliminando temporales..."
+echo "1) Eliminando temporales conocidos..."
 rm -rf __pycache__
 find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 find . -type f -name "*.pyc" -delete
@@ -20,16 +21,17 @@ find . -type f -name "*.pyo" -delete
 echo ""
 echo "2) Eliminando output/reportes..."
 rm -rf output
+
+echo ""
+echo "3) Sincronizando repo local con GitHub..."
+echo "   Esto trae carpetas nuevas y borra archivos/carpetas eliminadas en GitHub."
+git fetch "$REMOTE" "$BRANCH"
+git reset --hard "$REMOTE/$BRANCH"
+
+echo ""
+echo "4) Limpiando archivos no versionados, conservando venv..."
+git clean -fd -e venv -e venv/ -e .env -e app.log -e "*.log" -e output -e output/
 mkdir -p output/reports
-
-echo ""
-echo "3) Descartando cambios locales que impiden pull..."
-git restore templates/index.html 2>/dev/null || true
-git restore output/ 2>/dev/null || true
-
-echo ""
-echo "4) Pull desde GitHub..."
-git pull origin "$BRANCH"
 
 echo ""
 echo "5) Insertando automaticamente scripts JS auxiliares..."
