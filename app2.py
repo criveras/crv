@@ -17,7 +17,7 @@ from flask import Flask, jsonify, request
 from analyze import DEFAULT_CONFIG, load_config, prepare_dataset
 from variable_profiles import get_profile
 
-APP2_VERSION = "app2-v2026.06.28-001"
+APP2_VERSION = "app2-v2026.06.28-002"
 TZ_NAME = "America/Santiago"
 TZ = ZoneInfo(TZ_NAME)
 
@@ -27,6 +27,12 @@ POINTS_URL = os.environ.get("RT3_POINTS_URL", f"{RT3_HOST}/api/points")
 TIMEOUT = int(os.environ.get("RT3_API_TIMEOUT", "120"))
 
 app = Flask(__name__)
+
+KIND_STYLE = {
+    "weekday": {"name": "LL/HH lunes-viernes", "color": "#00bcd4", "fill": "rgba(0,188,212,.10)"},
+    "weekend": {"name": "LL/HH sabado-domingo", "color": "#e040fb", "fill": "rgba(224,64,251,.10)"},
+    "holiday": {"name": "LL/HH feriado Chile", "color": "#ff1744", "fill": "rgba(255,23,68,.12)"},
+}
 
 
 def base_cfg() -> dict:
@@ -112,6 +118,11 @@ def day_kind(ts: pd.Timestamp) -> str:
     return "weekday"
 
 
+def model_kind(kind: str) -> str:
+    # El feriado se dibuja rojo, pero se comporta como sabado/domingo.
+    return "weekend" if kind in ("weekend", "holiday") else "weekday"
+
+
 def build_midnight_lines(start: pd.Timestamp, end: pd.Timestamp) -> list[dict[str, Any]]:
     cur = as_cl(start).floor("D")
     stop = as_cl(end).ceil("D")
@@ -122,46 +133,76 @@ def build_midnight_lines(start: pd.Timestamp, end: pd.Timestamp) -> list[dict[st
     return out
 
 
+def close_segment(segments: dict[str, list[list[list[float]]]], kind: str | None, points: list[list[float]]) -> None:
+    if kind and len(points) >= 2:
+        segments[kind].append(points[:])
+
+
 def build_hourly_steps(df: pd.DataFrame) -> dict[str, Any]:
     src = df.dropna(subset=["time_local", "value"]).copy()
     if src.empty:
-        return {"weekday": [], "weekend": [], "holiday": [], "midnight_lines": []}
+        return {"segments": {"weekday": [], "weekend": [], "holiday": []}, "bands": [], "midnight_lines": []}
+
     src["time_cl"] = src["time_local"].map(as_cl)
     src["hour_cl"] = src["time_cl"].map(lambda t: int(t.hour))
-    src["kind"] = src["time_cl"].map(day_kind)
+    src["visual_kind"] = src["time_cl"].map(day_kind)
+    src["model_kind"] = src["visual_kind"].map(model_kind)
 
     limits: dict[tuple[str, int], tuple[float, float]] = {}
-    for (kind, hour), group in src.groupby(["kind", "hour_cl"]):
+    for (mkind, hour), group in src.groupby(["model_kind", "hour_cl"]):
         lim = sigma3_limits(group["value"].astype(float).tolist())
         if lim:
-            limits[(str(kind), int(hour))] = lim
+            limits[(str(mkind), int(hour))] = lim
 
-    # Fallback: feriado usa patron fin de semana, luego habil, si hay pocas muestras rojas.
+    # Fallback defensivo: si falta fin de semana usa habil; si falta habil usa fin de semana.
     for hour in range(24):
-        if ("holiday", hour) not in limits:
-            if ("weekend", hour) in limits:
-                limits[("holiday", hour)] = limits[("weekend", hour)]
-            elif ("weekday", hour) in limits:
-                limits[("holiday", hour)] = limits[("weekday", hour)]
+        if ("weekend", hour) not in limits and ("weekday", hour) in limits:
+            limits[("weekend", hour)] = limits[("weekday", hour)]
+        if ("weekday", hour) not in limits and ("weekend", hour) in limits:
+            limits[("weekday", hour)] = limits[("weekend", hour)]
 
     start = src["time_cl"].min().floor("h")
     end = src["time_cl"].max().floor("h") + pd.Timedelta(hours=1)
-    rows: dict[str, list[list[float | None]]] = {"weekday": [], "weekend": [], "holiday": []}
+    segments: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
+    bands: list[dict[str, Any]] = []
+    cur_kind: str | None = None
+    cur_points: list[list[float]] = []
+    prev_x: int | None = None
+    prev_lo: float | None = None
+    prev_hi: float | None = None
     prev_kind: str | None = None
+
     cur = start
     while cur <= end:
-        kind = day_kind(cur)
-        lim = limits.get((kind, int(cur.hour)))
-        if lim:
-            x = ts_ms(cur)
-            lo, hi = lim
-            if prev_kind and prev_kind != kind and rows[prev_kind]:
-                rows[prev_kind].append([x, None, None])
-            rows[kind].append([x, lo, hi])
-            prev_kind = kind
+        vkind = day_kind(cur)
+        mkind = model_kind(vkind)
+        lim = limits.get((mkind, int(cur.hour)))
+        if not lim:
+            close_segment(segments, cur_kind, cur_points)
+            cur_kind = None
+            cur_points = []
+            prev_x = prev_lo = prev_hi = prev_kind = None
+            cur += pd.Timedelta(hours=1)
+            continue
+
+        x = ts_ms(cur)
+        lo, hi = lim
+        if cur_kind != vkind:
+            close_segment(segments, cur_kind, cur_points)
+            cur_kind = vkind
+            cur_points = []
+            prev_x = prev_lo = prev_hi = prev_kind = None
+
+        cur_points.append([x, lo, hi])
+        if prev_x is not None and prev_lo is not None and prev_hi is not None and prev_kind == vkind:
+            style = KIND_STYLE[vkind]
+            bands.append({"from": prev_x, "to": x, "ll": prev_lo, "hh": prev_hi, "kind": vkind, "name": style["name"], "color": style["color"]})
+
+        prev_x, prev_lo, prev_hi, prev_kind = x, lo, hi, vkind
         cur += pd.Timedelta(hours=1)
-    rows["midnight_lines"] = build_midnight_lines(start, end)
-    return rows
+
+    close_segment(segments, cur_kind, cur_points)
+    return {"segments": segments, "bands": bands, "midnight_lines": build_midnight_lines(start, end), "styles": KIND_STYLE}
 
 
 @app.route("/")
@@ -206,7 +247,7 @@ def index():
   </div>
   <div id="status">Inicializando...</div>
   <div id="chart"></div>
-  <p class="small">Hora Chile. <span class="legend-chip" style="background:#00bcd4"></span>lunes-viernes <span class="legend-chip" style="background:#e040fb"></span>sábado/domingo <span class="legend-chip" style="background:#ff1744"></span>feriado Chile. Línea vertical gris = 00:00.</p>
+  <p class="small">Hora Chile. <span class="legend-chip" style="background:#00bcd4"></span>lunes-viernes <span class="legend-chip" style="background:#e040fb"></span>sábado/domingo <span class="legend-chip" style="background:#ff1744"></span>feriado Chile con patrón sábado/domingo. Línea vertical gris = 00:00.</p>
 </div>
 <script>
 const APP2_VERSION = {APP2_VERSION!r};
@@ -215,7 +256,39 @@ let chart = null;
 const $ = id => document.getElementById(id);
 Highcharts.setOptions({{ time: {{ timezone: 'America/Santiago', useUTC: false }} }});
 function fmt(v,d=2) {{ return v == null || Number.isNaN(Number(v)) ? '—' : Number(v).toFixed(d); }}
-function stepSeries(name, data, color, fill) {{ return {{ name:name, type:'arearange', step:'left', data:data||[], color:color, lineColor:color, fillColor:fill, fillOpacity:.10, lineWidth:1, marker:{{enabled:false}}, zIndex:2, tooltip:{{ pointFormatter:function() {{ return '<span style="color:'+color+'">●</span> '+name+': <b>LL '+fmt(this.low)+' / HH '+fmt(this.high)+'</b><br/>'; }} }} }}; }}
+function bandAt(bands, x) {{
+  for (let i=0; i<bands.length; i++) {{
+    const b = bands[i];
+    if (x >= b.from && x < b.to) return b;
+  }}
+  return null;
+}}
+function makeBandSeries(segments, styles) {{
+  const out = [];
+  ['weekday','weekend','holiday'].forEach(kind => {{
+    const st = styles[kind];
+    (segments[kind] || []).forEach((seg, idx) => {{
+      if (!seg || seg.length < 2) return;
+      out.push({{
+        name: st.name + (idx ? ' ' + (idx+1) : ''),
+        type: 'arearange',
+        step: 'left',
+        data: seg,
+        color: st.color,
+        lineColor: st.color,
+        fillColor: st.fill,
+        fillOpacity: .10,
+        lineWidth: 1,
+        marker: {{ enabled:false }},
+        enableMouseTracking: false,
+        linkedTo: idx ? ':previous' : undefined,
+        showInLegend: idx === 0,
+        zIndex: 2
+      }});
+    }});
+  }});
+  return out;
+}}
 async function loadPoints() {{
   const r = await fetch('/api/points2');
   const data = await r.json();
@@ -237,6 +310,8 @@ async function loadChart() {{
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || r.statusText);
   $('status').textContent = `${{APP2_VERSION}} · ${{data.point}} · ${{data.count}} pts · ${{data.unit}} · ${{data.tz}}`;
+  const bands = data.steps.bands || [];
+  const bandSeries = makeBandSeries(data.steps.segments || {{}}, data.steps.styles || {{}});
   const opts = {{
     chart: {{ backgroundColor:'#252525', zoomType:'x', panning:{{enabled:true,type:'x'}}, panKey:'shift' }},
     accessibility: {{ enabled:false }},
@@ -247,17 +322,29 @@ async function loadChart() {{
     xAxis: {{ type:'datetime', plotLines:data.steps.midnight_lines || [], labels:{{style:{{color:'#aaa'}}}}, lineColor:'#555', tickColor:'#555' }},
     yAxis: {{ title:{{text:data.unit, style:{{color:'#aaa'}}}}, labels:{{style:{{color:'#aaa'}}}}, gridLineColor:'#3a3a3a' }},
     legend: {{ enabled:true, itemStyle:{{color:'#eee'}} }},
-    tooltip: {{ shared:true, useHTML:true, backgroundColor:'rgba(30,30,30,.96)', borderColor:'#666', style:{{color:'#eee'}}, xDateFormat:'%Y-%m-%d %H:%M' }},
-    plotOptions: {{ series:{{animation:false, states:{{inactive:{{opacity:1}}}}}}, arearange:{{lineWidth:1, marker:{{enabled:false}}}} }},
-    series: [
-      stepSeries('LL/HH lunes-viernes', data.steps.weekday, '#00bcd4', 'rgba(0,188,212,.10)'),
-      stepSeries('LL/HH sábado-domingo', data.steps.weekend, '#e040fb', 'rgba(224,64,251,.10)'),
-      stepSeries('LL/HH feriado Chile', data.steps.holiday, '#ff1744', 'rgba(255,23,68,.11)'),
-      {{ name:'Valor real', type:'line', data:data.series, color:'#ffffff', lineWidth:2, marker:{{enabled:true, radius:2}}, zIndex:5, tooltip:{{valueDecimals:3, valueSuffix:' '+data.unit}} }}
-    ]
+    tooltip: {{
+      shared:false,
+      useHTML:true,
+      backgroundColor:'rgba(30,30,30,.96)',
+      borderColor:'#666',
+      style:{{color:'#eee'}},
+      formatter:function() {{
+        const x = this.x || (this.point && this.point.x);
+        let html = '<b>' + Highcharts.dateFormat('%Y-%m-%d %H:%M', x) + '</b><br>';
+        html += '<span style="color:#fff">●</span> Valor real: <b>' + fmt(this.y,3) + '</b> ' + data.unit;
+        const b = bandAt(bands, x);
+        if (b) html += '<br><span style="color:'+b.color+'">●</span> '+b.name+': <b>LL '+fmt(b.ll)+' / HH '+fmt(b.hh)+'</b>';
+        return html;
+      }}
+    }},
+    plotOptions: {{ series:{{animation:false, states:{{inactive:{{opacity:1}}}}}}, arearange:{{lineWidth:1, marker:{{enabled:false}}, enableMouseTracking:false}} }},
+    series: bandSeries.concat([
+      {{ name:'Valor real', type:'line', data:data.series, color:'#ffffff', lineWidth:2, marker:{{enabled:false}}, zIndex:5, tooltip:{{valueDecimals:3, valueSuffix:' '+data.unit}} }}
+    ])
   }};
-  if (chart) chart.destroy();
+  const old = chart;
   chart = Highcharts.stockChart('chart', opts);
+  if (old) setTimeout(() => old.destroy(), 0);
 }}
 $('load').addEventListener('click', () => loadChart().catch(e => $('status').textContent = 'ERROR: ' + e.message));
 loadPoints().then(loadChart).catch(e => $('status').textContent = 'ERROR: ' + e.message);
