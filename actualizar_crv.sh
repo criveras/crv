@@ -70,12 +70,12 @@ else:
 
 step_parse = "    step_enabled = _parse_bool(request.args.get(\"step\"))\n"
 marker = "    sigma_alarm = _parse_bool(request.args.get(\"sigma_alarm\"))\n"
-txt = txt.replace(marker, marker + step_parse)
+txt = txt.replace(marker, marker + step_parse, 1)
 print("OK: parse step instalado")
 
 log_block = """        if step_enabled:\n            print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
 marker = "        cfg = _cfg_for_point(point, {\"fini\": fini, \"ma\": ma, \"point\": point})\n"
-txt = txt.replace(marker, log_block + marker)
+txt = txt.replace(marker, log_block + marker, 1)
 print("OK: log LL/HH STEP instalado")
 
 p.write_text(txt, encoding="utf-8")
@@ -149,6 +149,7 @@ echo ""
 echo "9) Verificacion rapida:"
 grep -E "step-hourly-layer|chart-layer-controls|auto-step" templates/index.html || true
 grep -n "step_patterns\|build_step_overlay\|LL/HH STEP\|step_enabled" app.py || true
+python -m py_compile app.py
 
 echo ""
 echo "10) Estado Git:"
