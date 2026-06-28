@@ -39,6 +39,19 @@ from pathlib import Path
 p = Path("app.py")
 txt = p.read_text(encoding="utf-8")
 
+# Limpia parches previos, incluso si estaban duplicados o mal indentados.
+clean = []
+for line in txt.splitlines():
+    s = line.strip()
+    if s.startswith('step_enabled = _parse_bool(request.args.get("step")'):
+        continue
+    if s == 'if step_enabled:':
+        continue
+    if '[LL/HH STEP] marcado' in line:
+        continue
+    clean.append(line)
+txt = "\n".join(clean) + "\n"
+
 imp = "from step_patterns import build_step_overlay\n"
 anchor = "from sixsigma import apply_sigma_alarm_limits, apply_sigma_lh_limits, build_sigma_bands, detect_patterns, pattern_markers\n"
 if imp not in txt:
@@ -56,24 +69,14 @@ else:
     print("OK: payload step_patterns ya existe")
 
 step_parse = "    step_enabled = _parse_bool(request.args.get(\"step\"))\n"
-if step_parse not in txt:
-    marker = "    sigma_alarm = _parse_bool(request.args.get(\"sigma_alarm\"))\n"
-    txt = txt.replace(marker, marker + step_parse)
-    print("OK: parse step agregado")
-else:
-    print("OK: parse step ya existe")
+marker = "    sigma_alarm = _parse_bool(request.args.get(\"sigma_alarm\"))\n"
+txt = txt.replace(marker, marker + step_parse)
+print("OK: parse step instalado")
 
-# Corrige cualquier version anterior mal indentada y deja un unico bloque valido.
-bad = """        if step_enabled:\n        print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
-good = """        if step_enabled:\n            print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
-txt = txt.replace(bad, good)
-
-if "[LL/HH STEP] marcado" not in txt:
-    marker = "        cfg = _cfg_for_point(point, {\"fini\": fini, \"ma\": ma, \"point\": point})\n"
-    txt = txt.replace(marker, good + marker)
-    print("OK: log LL/HH STEP agregado")
-else:
-    print("OK: log LL/HH STEP corregido")
+log_block = """        if step_enabled:\n            print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
+marker = "        cfg = _cfg_for_point(point, {\"fini\": fini, \"ma\": ma, \"point\": point})\n"
+txt = txt.replace(marker, log_block + marker)
+print("OK: log LL/HH STEP instalado")
 
 p.write_text(txt, encoding="utf-8")
 PY
