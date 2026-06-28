@@ -32,7 +32,7 @@ echo "4) Pull desde GitHub..."
 git pull origin "$BRANCH"
 
 echo ""
-echo "5) Reinsertando scripts de capas en index.html..."
+echo "5) Insertando automaticamente scripts JS auxiliares..."
 python3 - <<'PY'
 from pathlib import Path
 
@@ -41,17 +41,33 @@ txt = p.read_text(encoding="utf-8")
 
 target = '<script src="{{ url_for(\'static\', filename=\'js/portal.js\') }}?v=31"></script>'
 
-scripts = [
-    '<script src="{{ url_for(\'static\', filename=\'js/chart-layer-controls.js\') }}?v=1"></script>',
-    '<script src="{{ url_for(\'static\', filename=\'js/step-hourly-layer.js\') }}?v=1"></script>',
+patterns = [
+    "*-layer.js",
+    "*-controls.js",
+    "auto-*.js",
 ]
 
-for line in scripts:
-    if line not in txt:
-        txt = txt.replace(target, line + "\n  " + target)
+names = []
+for pattern in patterns:
+    for js in sorted(Path("static/js").glob(pattern)):
+        name = js.name
+        if name in {"portal.js", "theme-toggle.js", "sigma-alarm-toggle.js"}:
+            continue
+        if name not in names:
+            names.append(name)
+
+if target not in txt:
+    print("WARN: no encontre portal.js?v=31 en templates/index.html")
+else:
+    for name in names:
+        line = '<script src="{{ url_for(\'static\', filename=\'js/' + name + '\') }}?v=1"></script>'
+        if line not in txt:
+            txt = txt.replace(target, line + "\n  " + target)
+            print("OK: cargado", name)
+        else:
+            print("OK: ya estaba", name)
 
 p.write_text(txt, encoding="utf-8")
-print("OK: scripts de capas cargados antes de portal.js")
 PY
 
 echo ""
