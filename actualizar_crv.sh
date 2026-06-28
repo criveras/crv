@@ -64,25 +64,35 @@ for pattern in patterns:
         if name not in names:
             names.append(name)
 
-# Borra inyecciones antiguas de los mismos JS para evitar duplicados o desorden.
-for name in names:
-    old_line = '<script src="{{ url_for(\'static\', filename=\'js/' + name + '\') }}?v=1"></script>'
-    text = text.replace("  " + old_line + "\n", "")
-    text = text.replace(old_line + "\n", "")
-    text = text.replace(old_line, "")
-
-if target not in text:
-    print("WARN: no encontre portal.js?v=31 en templates/index.html")
-else:
-    block = ""
+# Borra cualquier linea previa que cargue estos JS, aunque tenga espacios distintos.
+lines = text.splitlines()
+clean = []
+for line in lines:
+    remove = False
     for name in names:
-        line = '<script src="{{ url_for(\'static\', filename=\'js/' + name + '\') }}?v=1"></script>'
-        block += "  " + line + "\n"
-        print("OK: cargado", name)
-    text = text.replace("  " + target, block + "  " + target)
-    text = text.replace(target, block + target)
+        if "url_for" in line and ("js/" + name) in line:
+            remove = True
+            break
+    if not remove:
+        clean.append(line)
 
-html.write_text(text, encoding="utf-8")
+out = []
+inserted = False
+for line in clean:
+    stripped = line.strip()
+    if not inserted and stripped == target:
+        indent = line[:len(line) - len(line.lstrip())]
+        for name in names:
+            src = '<script src="{{ url_for(\'static\', filename=\'js/' + name + '\') }}?v=1"></script>'
+            out.append(indent + src)
+            print("OK: cargado", name)
+        inserted = True
+    out.append(line)
+
+if not inserted:
+    print("WARN: no encontre portal.js?v=31 en templates/index.html")
+
+html.write_text("\n".join(out) + "\n", encoding="utf-8")
 PY
 
 echo ""
@@ -104,7 +114,7 @@ pip install -r requirements.txt
 
 echo ""
 echo "8) Verificacion rapida de JS cargados:"
-grep -E "layer|controls|auto-" templates/index.html || true
+grep -E "step-hourly-layer|chart-layer-controls|auto-step-holiday-fix" templates/index.html || true
 
 echo ""
 echo "9) Estado Git:"
