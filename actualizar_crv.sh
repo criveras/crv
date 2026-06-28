@@ -63,13 +63,17 @@ if step_parse not in txt:
 else:
     print("OK: parse step ya existe")
 
-log_line = """        if step_enabled:\n            print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
+# Corrige cualquier version anterior mal indentada y deja un unico bloque valido.
+bad = """        if step_enabled:\n        print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
+good = """        if step_enabled:\n            print(f\"[LL/HH STEP] marcado point={point} fini={fini} ma={ma}\", flush=True)\n"""
+txt = txt.replace(bad, good)
+
 if "[LL/HH STEP] marcado" not in txt:
     marker = "        cfg = _cfg_for_point(point, {\"fini\": fini, \"ma\": ma, \"point\": point})\n"
-    txt = txt.replace(marker, log_line + marker)
+    txt = txt.replace(marker, good + marker)
     print("OK: log LL/HH STEP agregado")
 else:
-    print("OK: log LL/HH STEP ya existe")
+    print("OK: log LL/HH STEP corregido")
 
 p.write_text(txt, encoding="utf-8")
 PY
