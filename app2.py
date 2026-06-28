@@ -17,9 +17,10 @@ from flask import Flask, jsonify, request
 from analyze import DEFAULT_CONFIG, load_config, prepare_dataset
 from variable_profiles import get_profile
 
-APP2_VERSION = "app2-v2026.06.28-002"
+APP2_VERSION = "app2-v2026.06.28-003"
 TZ_NAME = "America/Santiago"
 TZ = ZoneInfo(TZ_NAME)
+DEFAULT_PATTERN_FINI = "*-365d"
 
 BASE_DIR = Path(__file__).resolve().parent
 RT3_HOST = os.environ.get("RT3_API_HOST", "http://rt3-d3:8090")
@@ -29,9 +30,9 @@ TIMEOUT = int(os.environ.get("RT3_API_TIMEOUT", "120"))
 app = Flask(__name__)
 
 KIND_STYLE = {
-    "weekday": {"name": "LL/HH lunes-viernes", "color": "#00bcd4", "fill": "rgba(0,188,212,.10)"},
-    "weekend": {"name": "LL/HH sabado-domingo", "color": "#e040fb", "fill": "rgba(224,64,251,.10)"},
-    "holiday": {"name": "LL/HH feriado Chile", "color": "#ff1744", "fill": "rgba(255,23,68,.12)"},
+    "weekday": {"name": "LL/HH patron lunes-viernes", "color": "#00bcd4", "fill": "rgba(0,188,212,.10)"},
+    "weekend": {"name": "LL/HH patron sabado-domingo", "color": "#e040fb", "fill": "rgba(224,64,251,.10)"},
+    "holiday": {"name": "LL/HH feriado Chile usando patron sab-dom", "color": "#ff1744", "fill": "rgba(255,23,68,.12)"},
 }
 
 
@@ -138,11 +139,10 @@ def close_segment(segments: dict[str, list[list[list[float]]]], kind: str | None
         segments[kind].append(points[:])
 
 
-def build_hourly_steps(df: pd.DataFrame) -> dict[str, Any]:
-    src = df.dropna(subset=["time_local", "value"]).copy()
+def learn_hourly_limits(pattern_df: pd.DataFrame) -> dict[tuple[str, int], tuple[float, float]]:
+    src = pattern_df.dropna(subset=["time_local", "value"]).copy()
     if src.empty:
-        return {"segments": {"weekday": [], "weekend": [], "holiday": []}, "bands": [], "midnight_lines": []}
-
+        return {}
     src["time_cl"] = src["time_local"].map(as_cl)
     src["hour_cl"] = src["time_cl"].map(lambda t: int(t.hour))
     src["visual_kind"] = src["time_cl"].map(day_kind)
@@ -154,15 +154,23 @@ def build_hourly_steps(df: pd.DataFrame) -> dict[str, Any]:
         if lim:
             limits[(str(mkind), int(hour))] = lim
 
-    # Fallback defensivo: si falta fin de semana usa habil; si falta habil usa fin de semana.
     for hour in range(24):
         if ("weekend", hour) not in limits and ("weekday", hour) in limits:
             limits[("weekend", hour)] = limits[("weekday", hour)]
         if ("weekday", hour) not in limits and ("weekend", hour) in limits:
             limits[("weekday", hour)] = limits[("weekend", hour)]
+    return limits
 
-    start = src["time_cl"].min().floor("h")
-    end = src["time_cl"].max().floor("h") + pd.Timedelta(hours=1)
+
+def build_hourly_steps(pattern_df: pd.DataFrame, visible_df: pd.DataFrame) -> dict[str, Any]:
+    visible = visible_df.dropna(subset=["time_local", "value"]).copy()
+    if visible.empty:
+        return {"segments": {"weekday": [], "weekend": [], "holiday": []}, "bands": [], "midnight_lines": [], "styles": KIND_STYLE}
+
+    limits = learn_hourly_limits(pattern_df)
+    start = visible["time_local"].map(as_cl).min().floor("h")
+    end = visible["time_local"].map(as_cl).max().floor("h") + pd.Timedelta(hours=1)
+
     segments: dict[str, list[list[list[float]]]] = {"weekday": [], "weekend": [], "holiday": []}
     bands: list[dict[str, Any]] = []
     cur_kind: str | None = None
@@ -238,16 +246,17 @@ def index():
 </head>
 <body>
 <div class="app">
-  <div class="head"><h1>App2 - Dato real + LL/HH step horario sigma 3</h1><span class="ver">{APP2_VERSION}</span></div>
+  <div class="head"><h1>App2 - Real visible + patrón histórico LL/HH horario</h1><span class="ver">{APP2_VERSION}</span></div>
   <div class="bar">
     <select id="point"></select>
-    <label>Rango <input id="fini" value="*-14d" style="width:90px"></label>
+    <label>Real <input id="fini" value="*-14d" style="width:90px"></label>
+    <label>Patrón <input id="pattern_fini" value="{DEFAULT_PATTERN_FINI}" style="width:90px"></label>
     <label>MA <input id="ma" type="number" value="5" style="width:70px"></label>
     <button id="load">Cargar</button>
   </div>
   <div id="status">Inicializando...</div>
   <div id="chart"></div>
-  <p class="small">Hora Chile. <span class="legend-chip" style="background:#00bcd4"></span>lunes-viernes <span class="legend-chip" style="background:#e040fb"></span>sábado/domingo <span class="legend-chip" style="background:#ff1744"></span>feriado Chile con patrón sábado/domingo. Línea vertical gris = 00:00.</p>
+  <p class="small">Hora Chile. <span class="legend-chip" style="background:#00bcd4"></span>lunes-viernes histórico <span class="legend-chip" style="background:#e040fb"></span>sábado/domingo histórico <span class="legend-chip" style="background:#ff1744"></span>feriado Chile usando patrón sábado/domingo. Línea vertical gris = 00:00.</p>
 </div>
 <script>
 const APP2_VERSION = {APP2_VERSION!r};
@@ -304,12 +313,12 @@ async function loadPoints() {{
 }}
 async function loadChart() {{
   const p = $('point').value || initialPoint;
-  const qs = new URLSearchParams({{ point:p, fini:$('fini').value, ma:$('ma').value }});
+  const qs = new URLSearchParams({{ point:p, fini:$('fini').value, pattern_fini:$('pattern_fini').value, ma:$('ma').value }});
   $('status').textContent = 'Cargando ' + p + '...';
   const r = await fetch('/api/chart2?' + qs.toString());
   const data = await r.json();
   if (!r.ok) throw new Error(data.error || r.statusText);
-  $('status').textContent = `${{APP2_VERSION}} · ${{data.point}} · ${{data.count}} pts · ${{data.unit}} · ${{data.tz}}`;
+  $('status').textContent = `${{APP2_VERSION}} · ${{data.point}} · real ${{data.count}} pts · patrón ${{data.pattern_count}} pts · ${{data.unit}} · ${{data.tz}}`;
   const bands = data.steps.bands || [];
   const bandSeries = makeBandSeries(data.steps.segments || {{}}, data.steps.styles || {{}});
   const opts = {{
@@ -387,16 +396,20 @@ def chart2():
     if not point:
         return jsonify({"error": "missing point"}), 400
     fini = request.args.get("fini") or base_cfg().get("fini", "*-14d")
+    pattern_fini = request.args.get("pattern_fini") or DEFAULT_PATTERN_FINI
     ma = int(request.args.get("ma") or base_cfg().get("ma", 5))
     try:
-        cfg = cfg_for_point(point, fini, ma)
-        df, _, _ = prepare_dataset(cfg)
-        prof = get_profile(point, cfg.get("unit", ""), cfg)
-        unit = prof.get("unit") or cfg.get("unit", "")
-        clean = df.dropna(subset=["time_local", "value"])
+        real_cfg = cfg_for_point(point, fini, ma)
+        pattern_cfg = cfg_for_point(point, pattern_fini, ma)
+        df_real, _, _ = prepare_dataset(real_cfg)
+        df_pattern, _, _ = prepare_dataset(pattern_cfg)
+        prof = get_profile(point, real_cfg.get("unit", ""), real_cfg)
+        unit = prof.get("unit") or real_cfg.get("unit", "")
+        clean = df_real.dropna(subset=["time_local", "value"])
         series = [[ts_ms(r.time_local), round(float(r.value), 3)] for r in clean.itertuples() if math.isfinite(float(r.value))]
-        steps = build_hourly_steps(df)
-        return jsonify({"version": APP2_VERSION, "tz": TZ_NAME, "point": point, "unit": unit, "count": len(series), "series": series, "steps": steps})
+        steps = build_hourly_steps(df_pattern, df_real)
+        pattern_count = int(len(df_pattern.dropna(subset=["time_local", "value"])))
+        return jsonify({"version": APP2_VERSION, "tz": TZ_NAME, "point": point, "unit": unit, "count": len(series), "pattern_count": pattern_count, "fini": fini, "pattern_fini": pattern_fini, "series": series, "steps": steps})
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except requests.RequestException as exc:
@@ -405,7 +418,7 @@ def chart2():
 
 @app.route("/health")
 def health():
-    return jsonify({"ok": True, "service": "crv-app2", "version": APP2_VERSION, "port": int(os.environ.get("PORT", "5093")), "rt3": RT3_HOST})
+    return jsonify({"ok": True, "service": "crv-app2", "version": APP2_VERSION, "port": int(os.environ.get("PORT", "5093")), "rt3": RT3_HOST, "default_pattern_fini": DEFAULT_PATTERN_FINI})
 
 
 if __name__ == "__main__":
