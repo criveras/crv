@@ -1,0 +1,19 @@
+(function(){
+'use strict';
+var KEY='gpu_tag_layer_step';
+var LAST=null;
+function enabled(){return localStorage.getItem(KEY)==='1';}
+function easter(y){var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),h=(19*a+b-d-f+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return new Date(y,mo-1,da);}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function holiday(d){var md=String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var f={'01-01':1,'05-01':1,'05-21':1,'06-20':1,'06-29':1,'07-16':1,'08-15':1,'09-18':1,'09-19':1,'10-12':1,'10-31':1,'11-01':1,'12-08':1,'12-25':1};if(f[md])return true;var e=easter(d.getFullYear()),v=new Date(e),s=new Date(e);v.setDate(e.getDate()-2);s.setDate(e.getDate()-1);return iso(d)===iso(v)||iso(d)===iso(s);}
+function dtype(ms){var d=new Date(ms),w=d.getDay();if(holiday(d)&&w!==0&&w!==6)return'hol';if(w===0||w===6)return'we';return'wd';}
+function base(ms){return dtype(ms)==='wd'?'wd':'we';}
+function pct(a,p){a=a.slice().sort(function(x,y){return x-y;});var r=(a.length-1)*p,l=Math.floor(r),h=Math.ceil(r);return l===h?a[l]:a[l]+(a[h]-a[l])*(r-l);}
+function stat(a){if(a.length<3)return null;var p10=pct(a,.10),p50=pct(a,.50),p90=pct(a,.90),sg=(p90-p10)/2.563;if(!isFinite(sg)||sg<=0)sg=Math.max(Math.abs(p50)*.01,.01);return{lo:p50-3*sg,hi:p50+3*sg};}
+function add(arr,t,v){arr.push([t,v.lo,v.hi]);}
+function bands(){var src=(LAST&&LAST.series)||[];if(src.length<3)return[];var b={wd:{},we:{}};src.forEach(function(p){var y=Number(p.y);if(!isFinite(y))return;var d=new Date(p.x),h=d.getHours(),g=base(p.x);(b[g][h]||(b[g][h]=[])).push(y);});var st={wd:{},we:{}};['wd','we'].forEach(function(g){for(var h=0;h<24;h++){var s=stat(b[g][h]||[]);if(s)st[g][h]=s;}});var a=new Date(src[0].x),z=new Date(src[src.length-1].x);a.setMinutes(0,0,0);z.setMinutes(0,0,0);var wd=[],we=[],ho=[];for(var t=a.getTime();t<=z.getTime()+3600000;t+=3600000){var ty=dtype(t),h=new Date(t).getHours(),bb=ty==='wd'?'wd':'we',v=st[bb][h]||st.wd[h]||st.we[h];if(!v)continue;if(ty==='wd')add(wd,t,v);else if(ty==='we')add(we,t,v);else add(ho,t,v);}var out=[];if(wd.length)out.push({name:'LL/HH step lunes-viernes',type:'arearange',step:'left',data:wd,color:'#00bcd4',lineColor:'#00bcd4',fillColor:'rgba(0,188,212,.18)',fillOpacity:.18,lineWidth:1,zIndex:7});if(we.length)out.push({name:'LL/HH step sab-dom',type:'arearange',step:'left',data:we,color:'#e040fb',lineColor:'#e040fb',fillColor:'rgba(224,64,251,.20)',fillOpacity:.20,lineWidth:1,zIndex:8});if(ho.length)out.push({name:'LL/HH step feriado Chile',type:'arearange',step:'left',data:ho,color:'#ff1744',lineColor:'#ff1744',fillColor:'rgba(255,23,68,.20)',fillOpacity:.20,lineWidth:1,zIndex:9});return out;}
+function patchFetch(){if(window.__stepFixFetch)return;window.__stepFixFetch=1;var old=window.fetch.bind(window);window.fetch=function(r,o){var ch=false;try{if(typeof r==='string'){ch=(new URL(r,location.origin)).pathname==='/api/chart';}}catch(e){}return old(r,o).then(function(resp){if(ch){try{resp.clone().json().then(function(j){LAST=j;}).catch(function(){});}catch(e){}}return resp;});};}
+function patchChart(){if(!window.Highcharts||window.__stepFixChart)return;window.__stepFixChart=1;var old=Highcharts.stockChart;Highcharts.stockChart=function(c,opt,cb){var want=enabled();var prev=localStorage.getItem(KEY);if(want)localStorage.setItem(KEY,'0');var next=Object.assign({},opt);next.series=(opt.series||[]).slice();if(want)bands().forEach(function(s){next.series.push(s);});var ret=old.call(Highcharts,c,next,cb);if(prev===null)localStorage.removeItem(KEY);else localStorage.setItem(KEY,prev);return ret;};}
+function run(){patchFetch();patchChart();}
+run();document.addEventListener('DOMContentLoaded',run);
+})();
